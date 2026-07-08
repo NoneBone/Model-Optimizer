@@ -1,13 +1,15 @@
-# OpenAI GPT-OSS Quantization Aware Training (QAT) & Quantized Deployment
+# OpenAI GPT-OSS 量化感知训练 (QAT) 和量化部署
 
-This folder demonstrates Quantization Aware Training (QAT) and deployment examples for OpenAI's GPT-OSS models (20B and 120B parameters). The GPT-OSS models come natively quantized using [MXFP4](https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf) (Microscaling FP4), a 4-bit floating-point format (E2M1). Thanks to MXFP4, the 20B model fits into a 16 GB GPU and the 120B model fits into a single 80 GB GPU.
+ en [English](./README_en.md) ｜ zh_CN [简体中文](./README.md)
+ 
+此文件夹展示了 OpenAI 的 GPT-OSS 模型（200 亿和 1200 亿参数）的量化感知训练 (QAT) 和部署示例。GPT-OSS 模型本身就已使用量化技术进行量化。 [MXFP4](https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf) （微缩 FP4），一种 4 位浮点格式（E2M1）。得益于 MXFP4，20 位型号可以装入 16 GB 的 GPU，而 120 位型号可以装入单个 80 GB 的 GPU。
 
-Being an open weights model, developers can finetune it to add special abilities or domain knowledge. Native MXFP4 finetuning is challenging since the dynamic range and precision might not be sufficient to handle gradients during backpropagation. Dequantizing the MXFP4 models to BF16 and performing BF16 training is a viable option. However this results in a BF16 weights model which is about 4x of the original model size. Hence the next option is to perform MXFP4 Post Training Quantization (PTQ) on the finetuned model. However, PTQ degrades the finetuned model accuracy.
+MXFP4 是一种开放权重模型，开发者可以对其进行微调，以添加特殊功能或领域知识。原生 MXFP4 的微调具有挑战性，因为其动态范围和精度可能不足以处理反向传播过程中的梯度变化。将 MXFP4 模型反量化为 BF16 并进行 BF16 训练是一种可行的方案。然而，这会导致 BF16 权重模型的大小约为原始模型的 4 倍。因此，下一个方案是对微调后的模型执行 MXFP4 训练后量化 (PTQ)。但是，PTQ 会降低微调后模型的精度。
 
-Performing finetuning with Quantization Aware Training solves these issues. The model after QAT is in MXFP4 precision and can be deployed with smaller memory footprint just like the original GPT-OSS models to performant serving frameworks like
-[TensorRTLLM](https://github.com/NVIDIA/TensorRT-LLM), [vLLM](https://github.com/vllm-project/vllm) or [SGLang](https://github.com/sgl-project/sglang).
+使用量化感知训练 (QAT) 进行微调可以解决这些问题。经过 QAT 后的模型精度为 MXFP4，可以像原始 GPT-OSS 模型一样，以更小的内存占用部署到高性能服务框架中，例如
+[TensorRTLLM](https://github.com/NVIDIA/TensorRT-LLM)， [vLLM](https://github.com/vllm-project/vllm) 或者 [SGLang](https://github.com/sgl-project/sglang)。
 
-## Table of Contents
+## 目录
 
 1. [Setup](#setup)
 1. [Quantization Aware Training from ModelOpt](#quantization-aware-training-from-modelopt)
@@ -15,22 +17,22 @@ Performing finetuning with Quantization Aware Training solves these issues. The 
 1. [LoRA QAT: low memory footprint alternative for full parameter QAT](#lora-qat-low-memory-footprint-alternative-for-full-parameter-qat)
 1. [Quantization Aware Training & Deployment for models beyond GPT-OSS](#quantization-aware-training--deployment-for-models-beyond-gpt-oss)
 
-## Setup
+## 设置
 
-Install the necessary dependencies:
+安装必要的依赖项：
 
 ```bash
 pip install -U nvidia-modelopt[hf]
 pip install -r requirements.txt
 ```
 
-## Quantization Aware Training from ModelOpt
+## 来自 ModelOpt 的量化感知训练
 
-In Quantization Aware Training, the forward computations are performed with 'fake quantized' values and the backward computations are performed with high precision datatype. In 'fake quantization' the numerical equivalent of the quantized value is represented using a high precision datatype such as BF16. Hence, QAT can be integrated to standard training pipeline such as regular BF16 mixed precision training.
+在量化感知训练（Quantization Aware Training，QAT）中，前向计算使用“伪量化”值，而反向计算则使用高精度数据类型。在“伪量化”中，量化值的数值等效值使用高精度数据类型（例如 BF16）表示。因此，QAT 可以集成到标准训练流程中，例如常规的 BF16 混合精度训练。
 
-During QAT, the model learns to recover the accuracy after quantization. To perform QAT, quantize your model first using ModelOpt's [`mtq.quantize`](https://nvidia.github.io/Model-Optimizer/reference/generated/modelopt.torch.quantization.model_quant.html#modelopt.torch.quantization.model_quant.quantize) API. Then you can train this quantized model with your existing training pipeline.
+在量化评估训练 (QAT) 过程中，模型会学习如何在量化后恢复精度。要执行 QAT，请先使用 ModelOpt 对模型进行量化。 [`mtq.quantize`](https://nvidia.github.io/Model-Optimizer/reference/generated/modelopt.torch.quantization.model_quant.html#modelopt.torch.quantization.model_quant.quantize) API。然后，您可以使用现有的训练流程来训练这个量化模型。
 
-Here is a code example:
+以下是一个代码示例：
 
 ```python
 import modelopt.torch.quantization as mtq
@@ -50,11 +52,11 @@ model = mtq.quantize(model, config, forward_loop)
 train(model, train_loader, optimizer, scheduler, ...)
 ```
 
-For an end to end example showcasing the above workflow, checkout [qat-finetune-transformers.ipynb](./qat-finetune-transformers.ipynb).
+如需查看展示上述工作流程的完整示例，请查看 [qat-finetune-transformers.ipynb](./qat-finetune-transformers.ipynb)。
 
-If you are training Huggingface models with trainer classes from Huggingface such as [SFTTrainer](https://huggingface.co/docs/trl/en/sft_trainer) performing QAT is even easier - simply replace the trainer with its equivalent, `QATSFTTrainer` from ModelOpt and specify additional quantization arguments to it. `QATSFTTrainer` will perform the necessary quantization steps in the backend and train the model just like the original `SFTTrainer`.
+如果您正在使用 Huggingface 提供的训练器课程来训练 Huggingface 模型，例如 [SFTTrainer](https://huggingface.co/docs/trl/en/sft_trainer) 进行QAT测试就更简单了——只需将训练器替换为同等型号的训练器即可。 `QATSFTTrainer` 从 ModelOpt 中指定额外的量化参数。 `QATSFTTrainer` 将在后端执行必要的量化步骤，并像训练原始模型一样训练模型。 `SFTTrainer`。
 
-A real end-to-end example for this is in `sft.py` in this folder. To perform QAT with full parameter SFT on GPT-OSS 20B model, run:
+一个完整的端到端示例是： `sft.py` 在此文件夹中。要对 GPT-OSS 20B 模型执行包含完整参数 SFT 的 QAT，请运行：
 
 ```sh
 # Other supported quantization configs include NVFP4_MLP_WEIGHT_ONLY_CFG, NVFP4_MLP_ONLY_CFG etc.
@@ -65,20 +67,20 @@ accelerate launch --config_file configs/zero3.yaml sft.py \
     --output_dir gpt-oss-20b-qat
 ```
 
-GPT-OSS 20B full parameter SFT needs one node with 8 x 80 GB GPUs. To change dataset or training hyperparameters, either modify `configs/sft_full.yaml` or pass them as command line arguments.
+GPT-OSS 20B 全参数 SFT 需要一个配备 8 个 80 GB GPU 的节点。要更改数据集或训练超参数，请修改以下配置： `configs/sft_full.yaml` 或者将它们作为命令行参数传递。
 
-### Recommended QAT Recipe
+### 推荐的QAT食谱
 
-For improved accuracy, we recommend the following QAT recipe:
+为了提高准确性，我们推荐以下QAT配方：
 
-- **Step 1: Fine-tune the model in high precision**
+- **第一步：高精度微调模型**
 
-- **Step 2: Apply QAT on the finetuned model (from step 1)**
+- **步骤 2：对微调后的模型（来自步骤 1）应用 QAT**
 
-  - A small learning rate such as 1e-5 with Adam Optimizer works well for QAT after high precision training.
-  - QAT usually recovers accuracy within a few million to billion tokens. Evaluate your checkpoints to determine whether accuracy have been recovered.
+  - 对于高精度训练后的 QAT，使用 Adam 优化器，较小的学习率（例如 1e-5）效果很好。
+  - QAT通常可在几百万到几十亿个代币内恢复准确性。请评估您的检查点以确定准确性是否已恢复。
 
-To perform this recommended QAT recipe, run:
+要执行此推荐的 QAT 方案，请运行：
 
 ```sh
 # Step 1: Perform high precision SFT without quantization
@@ -93,15 +95,15 @@ accelerate launch --config_file configs/zero3.yaml sft.py \
     --output_dir gpt-oss-20b-qat \
 ```
 
-The final QAT checkpoint is in fake-quantized form. Low memory footprint and speedup comes after [deployment](#deployment) to accelerated runtimes.
+最终的 QAT 检查点采用伪量化形式。低内存占用和加速效果随后实现。 [deployment](#deployment) 加速运行时。
 
-Note: For restoring the model checkpoint for Pytorch native evaluation, see [ModelOpt Restore using Huggingface APIs](https://nvidia.github.io/Model-Optimizer/guides/2_save_load.html#modelopt-save-restore-using-huggingface-checkpointing-apis).
+注意：要恢复 PyTorch 原生评估的模型检查点，请参阅 [ModelOpt Restore using Huggingface APIs](https://nvidia.github.io/Model-Optimizer/guides/2_save_load.html#modelopt-save-restore-using-huggingface-checkpointing-apis)。
 
-## Deployment
+## 部署
 
-The GPT-OSS QAT models from above can be deployed in MXFP4 format using performant serving engines like TensorRT-LLM, vLLM, and SGLang. To enable this, we provide a custom conversion script that transforms a Hugging Face–compatible BF16 checkpoint into the same MXFP4 weight-only format used by the original GPT-OSS release. This real MXFP4 quantized checkpoint can be deployed to supported runtimes just like the original GPT-OSS MXFP4 models.
+上述 GPT-OSS QAT 模型可以以 MXFP4 格式部署到 TensorRT-LLM、vLLM 和 SGLang 等高性能服务引擎上。为此，我们提供了一个自定义转换脚本，可以将 Hugging Face 兼容的 BF16 检查点转换为与原始 GPT-OSS 版本相同的 MXFP4 权重格​​式。这种真正的 MXFP4 量化检查点可以像原始 GPT-OSS MXFP4 模型一样部署到受支持的运行时环境中。
 
-To export the QAT checkpoint to real quantized MXFP4, run:
+要将 QAT 检查点导出为实际量化的 MXFP4，请运行：
 
 ```bash
 python convert_oai_mxfp4_weight_only.py  \
@@ -109,13 +111,13 @@ python convert_oai_mxfp4_weight_only.py  \
     --output_path gpt-oss-20b-qat-real-mxfp4
 ```
 
-Note: Model Optimizer currently exports quantized checkpoints in formats other than MXFP4. Support for ModelOpt-generated MXFP4 checkpoints in vLLM, SGLang, and TensorRT-LLM is planned and actively in development.
+注意：模型优化器目前导出的量化检查点格式并非 MXFP4。我们计划并正在积极开发对 vLLM、SGLang 和 TensorRT-LLM 中由模型优化器生成的 MXFP4 检查点的支持。
 
 <details>
-<summary><strong>Deployment on TensorRT-LLM</strong></summary>
+<summary><strong>在 TensorRT-LLM 上部署</strong></summary>
 
-To setup TensorRT-LLM, follow the official guide: [Deploying GPT-OSS on TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/tech_blog/blog9_Deploying_GPT_OSS_on_TRTLLM.md)
-Once installed, launch an OpenAI-compatible endpoint using:
+要设置 TensorRT-LLM，请按照官方指南操作： [Deploying GPT-OSS on TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/tech_blog/blog9_Deploying_GPT_OSS_on_TRTLLM.md)
+安装完成后，使用以下命令启动与 OpenAI 兼容的端点：
 
 ```bash
 trtllm-serve path/to/quantized/checkpoint --tokenizer /path/to/tokenizer --max_batch_size <max_batch_size> --max_num_tokens <max_num_tokens> --max_seq_len <max_seq_len> --tp_size <tp_size> --pp_size <pp_size> --host <host_ip_address> --port <port> --kv_cache_free_gpu_memory_fraction 0.95
@@ -125,10 +127,10 @@ trtllm-serve path/to/quantized/checkpoint --tokenizer /path/to/tokenizer --max_b
 </details>
 
 <details>
-<summary><strong>Deployment on SGLang</strong></summary>
+<summary><strong>在 SGLang 上部署</strong></summary>
 
-To setup SGLang, refer to the setup issue: [SGLang Setup Guide](https://github.com/sgl-project/sglang/issues/8833)
-Then start the server with:
+要设置 SGLang，请参考设置问题： [SGLang Setup Guide](https://github.com/sgl-project/sglang/issues/8833)
+然后使用以下命令启动服务器：
 
 ```bash
 python3 -m sglang.launch_server --model <model-path> --tp <tp_size>
@@ -138,10 +140,10 @@ python3 -m sglang.launch_server --model <model-path> --tp <tp_size>
 </details>
 
 <details>
-<summary><strong>Deployment on vLLM</strong></summary>
+<summary><strong>在 vLLM 上部署</strong></summary>
 
-To deploy with vLLM, follow the [OpenAI Cookbook instructions](https://cookbook.openai.com/articles/gpt-oss/run-vllm)
-Then start the server with:
+要使用 vLLM 进行部署，请按照以下步骤操作： [OpenAI Cookbook instructions](https://cookbook.openai.com/articles/gpt-oss/run-vllm)
+然后使用以下命令启动服务器：
 
 ```bash
 vllm serve <model_path>
@@ -151,11 +153,11 @@ vllm serve <model_path>
 </details>
 <br>
 
-## LoRA QAT: low memory footprint alternative for full parameter QAT
+## LoRA QAT：低内存占用的全参数 QAT 替代方案
 
-You may run QAT with LoRA to reduce the training GPU memory requirement. Using one node with 8 x 80 GB GPUs, you could perform QAT with LoRA on GPT OSS 120B model.
+您可以使用 LoRa 运行 QAT 以降低训练所需的 GPU 内存。使用一个配备 8 个 80 GB GPU 的节点，您可以在 GPT OSS 120B 模型上执行基于 LoRa 的 QAT。
 
-Here is how to run LoRA QAT for GPT OSS 120B model:
+以下是如何为 GPT OSS 120B 型号运行 LoRA QAT：
 
 ```bash
 python sft.py --config configs/sft_lora.yaml \
@@ -164,8 +166,8 @@ python sft.py --config configs/sft_lora.yaml \
     --output_dir gpt-oss-120b-lora-qat
 ```
 
-The LoRA-QAT adapter weights from the QAT process above need to be merged with the base weights for deployment.
-The custom conversion script above performs lora adapter merging before exporting MXFP4 weights. For this, specify the `lora_path` and `base_model_path` to the custom conversion script:
+上述 QAT 过程中得到的 LoRA-QAT 适配器权重需要与部署所需的基准权重合并。
+上述自定义转换脚本在导出 MXFP4 权重之前会执行 Lora 适配器合并。为此，请指定： `lora_path` 和 `base_model_path` 到自定义转换脚本：
 
 ```sh
 python convert_oai_mxfp4_weight_only.py  \
@@ -174,14 +176,14 @@ python convert_oai_mxfp4_weight_only.py  \
     --output_path gpt-oss-120b-lora-qat-merged-real-mxfp4
 ```
 
-You can deploy this real quantized MXFP4 checkpoint just like the original GPT-OSS MXFP4 model.
+您可以像部署原始 GPT-OSS MXFP4 模型一样部署这个真正的量化 MXFP4 检查点。
 
-## Quantization Aware Training & Deployment for models beyond GPT-OSS
+## 面向GPT-OSS以外模型的量化感知训练与部署
 
-### Easy QAT from ModelOpt using LLaMA-Factory
+### 使用 LLaMA-Factory 从 ModelOpt 轻松进行 QAT
 
-ModelOpt provides easy end to end QAT via [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), an open-source repository for LLM/VLM finetuning. Please refer to [LLaMa-Factory QAT example](../llm_qat/llama_factory) for performing QAT on your favorite models.
+ModelOpt 通过以下方式提供简便的端到端快速评估测试 (QAT) [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory)，一个用于 LLM/VLM 微调的开源代码库。请参阅 [LLaMa-Factory QAT example](../llm_qat/llama_factory) 用于对您喜爱的模型执行 QAT。
 
-### Deployment of ModelOpt QAT/PTQ models beyond GPT-OSS
+### ModelOpt QAT/PTQ 模型在 GPT-OSS 之外的部署
 
-ModelOpt supports exporting a wide variety of models after QAT/PTQ to TensorRT-LLM, vLLM, SGLang etc. Please refer to [hf_ptq](../hf_ptq).
+ModelOpt支持将QAT/PTQ处理后的多种模型导出为TensorRT-LLM、vLLM、SGLang等格式。详情请参阅…… [hf_ptq](../hf_ptq)。

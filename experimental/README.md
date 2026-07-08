@@ -1,36 +1,38 @@
-# Experimental Optimization Techniques
+# 实验优化技术
 
-Experimental optimization algorithms and research prototypes under active development.
+ en [English](./README_en.md) ｜ zh_CN [简体中文](./README.md)
+ 
+正在积极开发实验性优化算法和研究原型。
 
-## Purpose
+## 目的
 
-For new optimization techniques (quantization, pruning, sparsity, etc.) that are:
+对于以下新的优化技术（量化、剪枝、稀疏性等）：
 
-- Novel or research-stage algorithms
-- Not yet production-ready
-- May have unstable APIs
+- 新型或研究阶段算法
+- 尚未达到量产标准。
+- 可能存在不稳定的API。
 
-**⚠️ Warning**: Experimental features are not guaranteed to work across releases. APIs may change or features may be removed without notice. Use at your own risk.
+**⚠️警告**：实验性功能无法保证在不同版本中都能正常运行。API 可能会更改，功能可能会被移除，恕不另行通知。使用风险自负。
 
-## Requirements
+## 要求
 
-Each experimental technique must include:
+每项实验技术必须包括：
 
-- **README.md** - Explains what the technique does, how to use it, current status, model support, and references
-- **Working code** - Clear, readable implementation
-- **Comprehensive tests** - Good test coverage demonstrating correctness
-- **Detailed documentation** - Clear docs on usage, APIs, and behavior
-- **Example** - Demonstrating usage
-- **Model support list** - Which models/frameworks are supported
-- **Deployment info** - Supported deployment frameworks (TensorRT-LLM, vLLM, SGLang, etc.) and whether custom kernels are required
-- **requirements.txt** - Additional dependencies beyond base modelopt
-- **License headers** - Apache 2.0 headers on all Python files
+- **README.md** - 解释了该技术的功能、使用方法、当前状态、模型支持和参考资料。
+- **可运行的代码** - 清晰易读的实现
+- **全面测试** - 良好的测试覆盖率证明正确性
+- **详细文档** - 清晰的文档，涵盖用法、API 和行为说明。
+- **示例** - 用法演示
+- **模型支持列表** - 支持哪些模型/框架
+- **部署信息** - 支持的部署框架（TensorRT-LLM、vLLM、SGLang 等）以及是否需要自定义内核
+- **requirements.txt** - 除基础模型之外的其他依赖项
+- **许可证头文件** - 所有 Python 文件都包含 Apache 2.0 许可证头文件
 
-## Example Structures
+## 示例结构
 
-Organize your code however makes sense. Here are some examples:
+按逻辑顺序组织代码。以下是一些示例：
 
-**Simple flat structure:**
+**简单的扁平结构：**
 
 ```text
 experimental/my_technique/
@@ -41,7 +43,7 @@ experimental/my_technique/
 └── example.py
 ```
 
-**Package structure:**
+**包结构：**
 
 ```text
 experimental/my_technique/
@@ -57,26 +59,26 @@ experimental/my_technique/
     └── example_usage.py
 ```
 
-## Quality Standards
+## 质量标准
 
-Experimental code must meet quality standards:
+实验代码必须符合质量标准：
 
-- Comprehensive test coverage required
-- Clear documentation required
-- Pass all pre-commit checks
+- 需要全面的测试覆盖率
+- 需要清晰的文件。
+- 通过所有提交前检查
 
-## PR Guidelines
+## 公关指南
 
-Keep PRs focused and reviewable:
+保持 PR 内容简洁明了且易于审核：
 
-- **Split large features**: Break complex techniques into multiple PRs if needed
-- **Reasonable scope**: PRs with tens of thousands of lines are difficult to review
-- **Incremental development**: Consider submitting core functionality first, then enhancements
-- If your technique is large, discuss the implementation plan in an issue first
+- **拆分大型功能**：如有需要，将复杂技术拆分为多个 PR。
+- **合理的范围**：包含数万行代码的 PR 难以审核。
+- **增量式开发**：考虑先提交核心功能，然后再进行增强。
+- 如果你的技术规模很大，请先在一份问题报告中讨论实施计划。
 
-## Example Documentation Template
+## 示例文档模板
 
-Your technique's README.md should include:
+您的技术文档中的 README.md 文件应包含以下内容：
 
 ```markdown
 # Your Technique Name
@@ -122,14 +124,14 @@ Known issues:
 - [Related work](link)
 ```
 
-## Path to Production
+## 生产路径
 
-When a technique is ready for production (proven effective, stable API, full tests, comprehensive docs), it can be promoted to the main `modelopt` package.
+当一项技术准备好投入生产环境（经过验证有效、API稳定、测试完整、文档详尽）时，就可以将其提升为主要技术。 `modelopt` 包裹。
 
-**Contributors**: Open an issue proposing graduation with evidence of effectiveness and stability.
+**贡献者**：提出毕业提案，并提供有效性和稳定性的证据。
 
-**Users**: If you find an experimental feature valuable, open a GitHub issue requesting promotion to production. User demand is a key signal for production readiness.
+用户：如果您发现某个实验性功能很有价值，请在 GitHub 上提交 issue，请求将其升级到正式版。用户需求是衡量产品是否已准备好上线的重要指标。
 
-## Questions?
+## 问题？
 
-Open a GitHub issue with `[experimental]` prefix.
+在 GitHub 上创建一个 issue，内容如下： `[experimental]` 前缀。

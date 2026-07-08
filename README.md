@@ -1,8 +1,11 @@
 <div align="center">
 
+
 ![Banner image](docs/source/assets/model-optimizer-banner.png)
 
 # NVIDIA Model Optimizer
+
+ en [English](./README_en.md) ｜ zh_CN [简体中文](./README.md)
 
 [![Documentation](https://img.shields.io/badge/Documentation-latest-brightgreen.svg?style=flat)](https://nvidia.github.io/Model-Optimizer)
 [![version](https://img.shields.io/pypi/v/nvidia-modelopt?label=Release)](https://pypi.org/project/nvidia-modelopt/)
@@ -15,144 +18,182 @@
 
 ______________________________________________________________________
 
-**NVIDIA Model Optimizer** (referred to as **Model Optimizer**, or **ModelOpt**) is a library comprising state-of-the-art model optimization [techniques](#techniques) including quantization, pruning, Neural Architecture Search (NAS), distillation, speculative decoding and sparsity to accelerate models.
+**NVIDIA Model Optimizer**（简称 **Model Optimizer** 或 **ModelOpt**）是一个包含最先进模型优化技术的库，涵盖量化、剪枝、神经架构搜索 (NAS)、蒸馏、推测解码和稀疏化等技术，用于加速模型推理。
 
-**[Input]** Model Optimizer currently supports inputs of a [Hugging Face](https://huggingface.co/), [PyTorch](https://github.com/pytorch/pytorch) or [ONNX](https://github.com/onnx/onnx) model.
+**[输入]** Model Optimizer 目前支持输入 Hugging Face、PyTorch 或 ONNX 模型。
 
-**[Optimize]** Model Optimizer provides Python APIs for users to easily compose the above model optimization techniques and export an optimized quantized checkpoint.
-Model Optimizer is also integrated with [NVIDIA Megatron-Bridge](https://github.com/NVIDIA-NeMo/Megatron-Bridge), [Megatron-LM](https://github.com/NVIDIA/Megatron-LM) and [Hugging Face Accelerate](https://github.com/huggingface/accelerate) for training required inference optimization techniques.
+**[优化]** Model Optimizer 提供 Python API，方便用户组合上述模型优化技术并导出优化后的量化检查点。Model Optimizer 还与 NVIDIA Megatron-Bridge、Megatron-LM 和 Hugging Face Accelerate 集成，支持需要训练的推理优化技术。
 
-**[Export for deployment]** Seamlessly integrated within the NVIDIA AI software ecosystem, the quantized checkpoint generated from Model Optimizer is ready for deployment in downstream inference frameworks like [SGLang](https://github.com/sgl-project/sglang), [TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM/tree/main/examples/quantization), [TensorRT](https://github.com/NVIDIA/TensorRT), or [vLLM](https://github.com/vllm-project/vllm). The unified Hugging Face export API now supports both transformers and diffusers models.
+**[导出部署]** 与 NVIDIA AI 软件生态系统无缝集成，Model Optimizer 生成的量化检查点可直接部署到下游推理框架中，如 SGLang、TensorRT-LLM、TensorRT 或 vLLM。统一的 Hugging Face 导出 API 现已同时支持 transformers 和 diffusers 模型。
 
-## Latest News
+## 最新动态
 
-- [2026/05/27] [**End-to-end Optimization tutorial for Nemotron-3-Nano-30B-A3B**](./examples/megatron_bridge/tutorials/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16): Pruning + two-phase distillation + FP8 quantization achieving 2.6× vLLM throughput and 2.6× memory reduction.
-- [2026/05/13] [**Puzzletron**](./examples/puzzletron): A new algorithm for heterogeneous pruning & NAS of LLM and VLM models.
-- [2026/04/15] Customer story: [Domyn compresses Colosseum-355B → 260B using ModelOpt's Minitron pruning + distillation](https://www.domyn.com/blog/domyn-large-the-journey-of-a-european-sovereign-ai-model-for-regulated-industries)
-- [2026/03/17] Customer story: [Bielik.AI builds Bielik Minitron 7B (33% smaller, 50% faster, 90% quality retained) using ModelOpt's Minitron pruning + distillation](https://bielik.ai/en/nvidia-gtc-bielik-minitron-premiere/)
-- [2026/03/11] Model Optimizer quantized Nemotron-3-Super checkpoints are available on Hugging Face for download: [FP8](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8), [NVFP4](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4). Learn more in the [Nemotron 3 Super release blog](https://blogs.nvidia.com/blog/nemotron-3-super-agentic-ai/). Check out how to quantize Nemotron 3 models for deployment acceleration [here](./examples/hf_ptq/README.md)
-- [2026/03/11] [NeMo Megatron Bridge](https://github.com/NVIDIA-NeMo/Megatron-Bridge) now supports Nemotron-3-Super quantization (PTQ and QAT) and export workflows using the Model Optimizer library. See the [Quantization (PTQ and QAT) guide](https://github.com/NVIDIA-NeMo/Megatron-Bridge/blob/super-v3/docs/models/llm/nemotron3-super.md#quantization-ptq-and-qat) for FP8/NVFP4 quantization and HF export instructions.
-- [2025/12/11] [BLOG: Top 5 AI Model Optimization Techniques for Faster, Smarter Inference](https://developer.nvidia.com/blog/top-5-ai-model-optimization-techniques-for-faster-smarter-inference/)
-- [2025/12/08] NVIDIA TensorRT Model Optimizer is now officially rebranded as NVIDIA Model Optimizer.
-- [2025/10/07] [BLOG: Pruning and Distilling LLMs Using NVIDIA Model Optimizer](https://developer.nvidia.com/blog/pruning-and-distilling-llms-using-nvidia-tensorrt-model-optimizer/)
-- [2025/09/17] [BLOG: An Introduction to Speculative Decoding for Reducing Latency in AI Inference](https://developer.nvidia.com/blog/an-introduction-to-speculative-decoding-for-reducing-latency-in-ai-inference/)
-- [2025/09/11] [BLOG: How Quantization Aware Training Enables Low-Precision Accuracy Recovery](https://developer.nvidia.com/blog/how-quantization-aware-training-enables-low-precision-accuracy-recovery/)
-- [2025/08/29] [BLOG: Fine-Tuning gpt-oss for Accuracy and Performance with Quantization Aware Training](https://developer.nvidia.com/blog/fine-tuning-gpt-oss-for-accuracy-and-performance-with-quantization-aware-training/)
-- [2025/08/01] [BLOG: Optimizing LLMs for Performance and Accuracy with Post-Training Quantization](https://developer.nvidia.com/blog/optimizing-llms-for-performance-and-accuracy-with-post-training-quantization/)
-- [2025/06/24] [BLOG: Introducing NVFP4 for Efficient and Accurate Low-Precision Inference](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/)
-- [2025/05/14] [NVIDIA TensorRT Unlocks FP4 Image Generation for NVIDIA Blackwell GeForce RTX 50 Series GPUs](https://developer.nvidia.com/blog/nvidia-tensorrt-unlocks-fp4-image-generation-for-nvidia-blackwell-geforce-rtx-50-series-gpus/)
-- [2025/04/21] [Adobe optimized deployment using Model-Optimizer + TensorRT leading to a 60% reduction in diffusion latency, a 40% reduction in total cost of ownership](https://developer.nvidia.com/blog/optimizing-transformer-based-diffusion-models-for-video-generation-with-nvidia-tensorrt/)
-- [2025/04/05] [NVIDIA Accelerates Inference on Meta Llama 4 Scout and Maverick](https://developer.nvidia.com/blog/nvidia-accelerates-inference-on-meta-llama-4-scout-and-maverick/). Check out how to quantize Llama4 for deployment acceleration [here](./examples/hf_ptq/README.md#support-matrix)
-- [2025/03/18] [World's Fastest DeepSeek-R1 Inference with Blackwell FP4 & Increasing Image Generation Efficiency on Blackwell](https://developer.nvidia.com/blog/nvidia-blackwell-delivers-world-record-deepseek-r1-inference-performance/)
-- [2025/02/25] Model Optimizer quantized NVFP4 models available on Hugging Face for download: [DeepSeek-R1-FP4](https://huggingface.co/nvidia/DeepSeek-R1-FP4), [Llama-3.3-70B-Instruct-FP4](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP4), [Llama-3.1-405B-Instruct-FP4](https://huggingface.co/nvidia/Llama-3.1-405B-Instruct-FP4)
-- [2025/01/28] Model Optimizer has added support for NVFP4. Check out an example of NVFP4 PTQ [here](./examples/hf_ptq/README.md#getting-started).
-- [2025/01/28] Model Optimizer is now open source!
+- [2026/05/27] [**Nemotron-3-Nano-30B-A3B 端到端优化教程**](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/megatron_bridge/tutorials/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16)：剪枝 + 两阶段蒸馏 + FP8 量化，实现 2.6× vLLM 吞吐量和 2.6× 内存缩减。
+
+- [2026/05/13] [**Puzzletron**](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/puzzletron)：一种用于 LLM 和 VLM 模型异构剪枝及神经架构搜索（NAS）的新算法。
+
+- [2026/04/15] 客户案例：[Domyn 使用 ModelOpt 的 Minitron 剪枝 + 蒸馏将 Colosseum-355B 压缩至 260B](https://www.domyn.com/blog/domyn-large-the-journey-of-a-european-sovereign-ai-model-for-regulated-industries)
+
+- [2026/03/17] 客户案例：[Bielik.AI 使用 ModelOpt 的 Minitron 剪枝 + 蒸馏构建 Bielik Minitron 7B（体积缩小 33%、速度提升 50%、保留 90% 质量）](https://bielik.ai/en/nvidia-gtc-bielik-minitron-premiere/)
+
+- [2026/03/11] Model Optimizer 量化的 Nemotron-3-Super 检查点已在 Hugging Face 发布可供下载：[FP8](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8)、[NVFP4](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4)。了解更多请查看 [Nemotron 3 Super 发布博客](https://blogs.nvidia.com/blog/nemotron-3-super-agentic-ai/)。点击[此处](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/hf_ptq/README.md)了解如何量化 Nemotron 3 模型以加速部署
+
+- [2026/03/11] [NeMo Megatron Bridge](https://github.com/NVIDIA-NeMo/Megatron-Bridge)现已支持 Nemotron-3-Super 量化（PTQ 和 QAT）及导出工作流，使用 Model Optimizer 库。参见 [量化（PTQ 和 QAT）指南](https://github.com/NVIDIA-NeMo/Megatron-Bridge/blob/super-v3/docs/models/llm/nemotron3-super.md#quantization-ptq-and-qat)获取 FP8/NVFP4 量化及 HF 导出说明。
+
+- [2025/12/11] [博客：面向更快速、更智能推理的五大 AI 模型优化技术](https://developer.nvidia.com/blog/top-5-ai-model-optimization-techniques-for-faster-smarter-inference/)
+
+- [2025/12/08] NVIDIA TensorRT Model Optimizer 正式更名为 NVIDIA Model Optimizer。
+
+- [2025/10/07] [博客：使用 NVIDIA Model Optimizer 对 LLM 进行剪枝与蒸馏](https://developer.nvidia.com/blog/pruning-and-distilling-llms-using-nvidia-tensorrt-model-optimizer/)
+
+- [2025/09/17] [博客：降低 AI 推理延迟的推测解码（Speculative Decoding）入门](https://developer.nvidia.com/blog/an-introduction-to-speculative-decoding-for-reducing-latency-in-ai-inference/)
+
+- [2025/09/11] [博客：量化感知训练（QAT）如何实现低精度准确率恢复](https://developer.nvidia.com/blog/how-quantization-aware-training-enables-low-precision-accuracy-recovery/)
+
+- [2025/08/29] [博客：使用量化感知训练微调 gpt-oss 以提升准确率与性能](https://developer.nvidia.com/blog/fine-tuning-gpt-oss-for-accuracy-and-performance-with-quantization-aware-training/)
+
+- [2025/08/01] [博客：使用后训练量化（PTQ）优化 LLM 的性能与准确率](https://developer.nvidia.com/blog/optimizing-llms-for-performance-and-accuracy-with-post-training-quantization/)
+
+- [2025/06/24] [博客：介绍 NVFP4——面向高效且准确的低精度推理](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/)
+
+- [2025/05/14] [NVIDIA TensorRT 为 NVIDIA Blackwell GeForce RTX 50 系列 GPU 解锁 FP4 图像生成能力](https://developer.nvidia.com/blog/nvidia-tensorrt-unlocks-fp4-image-generation-for-nvidia-blackwell-geforce-rtx-50-series-gpus/)
+
+- [2025/04/21] [Adobe 使用 Model Optimizer + TensorRT 优化部署，扩散模型延迟降低 60%、总拥有成本（TCO）降低 40%](https://developer.nvidia.com/blog/optimizing-transformer-based-diffusion-models-for-video-generation-with-nvidia-tensorrt/)
+
+- [2025/04/05] [NVIDIA 加速 Meta Llama 4 Scout 和 Maverick 推理](https://developer.nvidia.com/blog/nvidia-accelerates-inference-on-meta-llama-4-scout-and-maverick/)。了解如何量化 Llama4 以加速部署[在此](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/hf_ptq/README.md#support-matrix)
+
+- [2025/03/18] [基于 Blackwell FP4 实现全球最快 DeepSeek-R1 推理 & 提升 Blackwell 上图像生成效率](https://developer.nvidia.com/blog/nvidia-blackwell-delivers-world-record-deepseek-r1-inference-performance/)
+
+- [2025/02/25] Model Optimizer 量化的 NVFP4 模型已在 Hugging Face 发布可供下载：[DeepSeek-R1-FP4](https://huggingface.co/nvidia/DeepSeek-R1-FP4)、[Llama-3.3-70B-Instruct-FP4](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP4)、[Llama-3.1-405B-Instruct-FP4](https://huggingface.co/nvidia/Llama-3.1-405B-Instruct-FP4)
+
+- [2025/01/28] Model Optimizer 新增 NVFP4 支持。查看 NVFP4 PTQ 示例[此处](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/hf_ptq/README.md#getting-started)。
+
+- [2025/01/28] Model Optimizer 现已开源！
 
 <details close>
 <summary>Previous News</summary>
 
-- [2024/10/23] Model Optimizer quantized FP8 Llama-3.1 Instruct models available on Hugging Face for download: [8B](https://huggingface.co/nvidia/Llama-3.1-8B-Instruct-FP8), [70B](https://huggingface.co/nvidia/Llama-3.1-70B-Instruct-FP8), [405B](https://huggingface.co/nvidia/Llama-3.1-405B-Instruct-FP8).
-- [2024/09/10] [Post-Training Quantization of LLMs with NVIDIA NeMo and Model Optimizer](https://developer.nvidia.com/blog/post-training-quantization-of-llms-with-nvidia-nemo-and-nvidia-tensorrt-model-optimizer/).
-- [2024/08/28] [Boosting Llama 3.1 405B Performance up to 44% with Model Optimizer on NVIDIA H200 GPUs](https://developer.nvidia.com/blog/boosting-llama-3-1-405b-performance-by-up-to-44-with-nvidia-tensorrt-model-optimizer-on-nvidia-h200-gpus/)
-- [2024/08/28] [Up to 1.9X Higher Llama 3.1 Performance with Medusa](https://developer.nvidia.com/blog/low-latency-inference-chapter-1-up-to-1-9x-higher-llama-3-1-performance-with-medusa-on-nvidia-hgx-h200-with-nvlink-switch/)
-- [2024/08/15] New features in recent releases: [Cache Diffusion](./examples/diffusers/cache_diffusion), [QLoRA workflow with NVIDIA NeMo](https://docs.nvidia.com/nemo-framework/user-guide/24.09/sft_peft/qlora.html), and more. Check out [our blog](https://developer.nvidia.com/blog/nvidia-tensorrt-model-optimizer-v0-15-boosts-inference-performance-and-expands-model-support/) for details.
-- [2024/06/03] Model Optimizer now has an experimental feature to deploy to vLLM as part of our effort to support popular deployment frameworks. Check out the workflow [here](./examples/hf_ptq/README.md#vllm)
-- [2024/05/08] [Announcement: Model Optimizer Now Formally Available to Further Accelerate GenAI Inference Performance](https://developer.nvidia.com/blog/accelerate-generative-ai-inference-performance-with-nvidia-tensorrt-model-optimizer-now-publicly-available/)
-- [2024/03/27] [Model Optimizer supercharges TensorRT-LLM to set MLPerf LLM inference records](https://developer.nvidia.com/blog/nvidia-h200-tensor-core-gpus-and-nvidia-tensorrt-llm-set-mlperf-llm-inference-records/)
-- [2024/03/18] [GTC Session: Optimize Generative AI Inference with Quantization in TensorRT-LLM and TensorRT](https://www.nvidia.com/en-us/on-demand/session/gtc24-s63213/)
-- [2024/03/07] [Model Optimizer's 8-bit Post-Training Quantization enables TensorRT to accelerate Stable Diffusion to nearly 2x faster](https://developer.nvidia.com/blog/tensorrt-accelerates-stable-diffusion-nearly-2x-faster-with-8-bit-post-training-quantization/)
-- [2024/02/01] [Speed up inference with Model Optimizer quantization techniques in TRT-LLM](https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/quantization-in-TRT-LLM.md)
+- [2024/10/23] Model Optimizer 量化后的 FP8 Llama-3.1 Instruct 模型已在 Hugging Face 发布可供下载：[8B](https://huggingface.co/nvidia/Llama-3.1-8B-Instruct-FP8)、[70B](https://huggingface.co/nvidia/Llama-3.1-70B-Instruct-FP8)、[405B](https://huggingface.co/nvidia/Llama-3.1-405B-Instruct-FP8)。
+
+- [2024/09/10] [使用 NVIDIA NeMo 和 Model Optimizer 对 LLM 进行后训练量化（PTQ）](https://developer.nvidia.com/blog/post-training-quantization-of-llms-with-nvidia-nemo-and-nvidia-tensorrt-model-optimizer/)。
+
+- [2024/08/28] [在 NVIDIA H200 GPU 上使用 Model Optimizer 将 Llama 3.1 405B 推理性能提升高达 44%](https://developer.nvidia.com/blog/boosting-llama-3-1-405b-performance-by-up-to-44-with-nvidia-tensorrt-model-optimizer-on-nvidia-h200-gpus/)
+
+- [2024/08/28] [借助 Medusa 实现最高 1.9 倍 Llama 3.1 性能提升](https://developer.nvidia.com/blog/low-latency-inference-chapter-1-up-to-1-9x-higher-llama-3-1-performance-with-medusa-on-nvidia-hgx-h200-with-nvlink-switch/)
+
+- [2024/08/15] 近期版本新功能：缓存扩散（Cache Diffusion）、[配合 NVIDIA NeMo 的 QLoRA 工作流](https://docs.nvidia.com/nemo-framework/user-guide/24.09/sft_peft/qlora.html)等。详见[我们的博客](https://developer.nvidia.com/blog/nvidia-tensorrt-model-optimizer-v0-15-boosts-inference-performance-and-expands-model-support/)。
+
+- [2024/06/03] Model Optimizer 现提供实验性特性可部署至 vLLM，作为支持主流部署框架的一部分。查看工作流[此处](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/hf_ptq/README.md#vllm)
+
+- [2024/05/08] [官宣：Model Optimizer 正式发布，进一步加速生成式 AI 推理性能](https://developer.nvidia.com/blog/accelerate-generative-ai-inference-performance-with-nvidia-tensorrt-model-optimizer-now-publicly-available/)
+
+- [2024/03/27] [Model Optimizer 助力 TensorRT-LLM 在 MLPerf LLM 推理基准测试中刷新纪录](https://developer.nvidia.com/blog/nvidia-h200-tensor-core-gpus-and-nvidia-tensorrt-llm-set-mlperf-llm-inference-records/)
+
+- [2024/03/18] [GTC 会议：使用 TensorRT-LLM 和 TensorRT 中的量化技术优化生成式 AI 推理](https://www.nvidia.com/en-us/on-demand/session/gtc24-s63213/)
+
+- [2024/03/07] [Model Optimizer 的 8-bit 后训练量化使 TensorRT 将 Stable Diffusion 推理加速近 2 倍](https://developer.nvidia.com/blog/tensorrt-accelerates-stable-diffusion-nearly-2x-faster-with-8-bit-post-training-quantization/)
+
+- [2024/02/01] [使用 Model Optimizer 量化技术在 TRT-LLM 中加速推理](https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/quantization-in-TRT-LLM.md)
 
 </details>
 
-## Install
+## 安装
 
-To install stable release packages for Model Optimizer with `pip` from [PyPI](https://pypi.org/project/nvidia-modelopt/):
+通过 [PyPI](https://pypi.org/project/nvidia-modelopt/)用 `pip`安装 Model Optimizer 稳定版：
 
-```bash
+```
 pip install -U nvidia-modelopt[all]
 ```
 
-Model Optimizer will download and install additional third-party open source software projects. Review the license terms of these open source projects before use.
+Model Optimizer 会下载并安装额外的第三方开源软件包，使用前请查阅其许可证条款。
 
-To install from source in editable mode with all development dependencies or to use the latest features, run:
+从源码以可编辑模式安装含所有开发依赖或体验最新特性，运行：
 
-```bash
-# Clone the Model Optimizer repository
+```
+# 克隆 Model Optimizer 仓库
 git clone git@github.com:NVIDIA/Model-Optimizer.git
 cd Model-Optimizer
 
 pip install -e .[dev]
 ```
 
-You can also directly use NVIDIA container images, which have Model Optimizer pre-installed:
+也可直接使用预装 Model Optimizer 的 NVIDIA 容器镜像：
 
 - `nvcr.io/nvidia/pytorch:<version>-py3`
+
 - `nvcr.io/nvidia/nemo:<version>`
+
 - `nvcr.io/nvidia/tensorrt-llm/release:<version>`
 
-Before pulling and using the container images, please review their respective license terms.
-Make sure to upgrade Model Optimizer to the latest version as described above.
-Visit our [installation guide](https://nvidia.github.io/Model-Optimizer/getting_started/2_installation.html) for
-more fine-grained control on installed dependencies or for alternative docker images and environment variables to setup.
+拉取和使用容器镜像前请查阅各自的许可证条款。确保按上述说明将 Model Optimizer 升级至最新版本。更多关于依赖精细控制、替代 Docker 镜像及环境变量设置，请参阅[安装指南](https://nvidia.github.io/Model-Optimizer/getting_started/2_installation.html)。
 
-## Techniques
+## 优化技术
 
 <div align="center">
 
-| **Technique** | **Description** | **Examples** | **Docs** |
-| :------------: | :------------: | :------------: | :------------: |
-| Post Training Quantization | Compress model size by 2x-4x, speeding up inference while preserving model quality! | \[[HF LLMs / VLMs](./examples/hf_ptq/)\] \[[Megatron-Bridge LLMs / VLMs](./examples/megatron_bridge/)\] \[[Diffusers](./examples/diffusers/)\] \[[ONNX](./examples/onnx_ptq/)\] \[[Windows](./examples/windows/)\] | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
-| Quantization Aware Training / Distillation | Refine accuracy of quantized models even further with a few training steps! | \[[Hugging Face](./examples/llm_qat/)\] \[[Megatron-Bridge](./examples/megatron_bridge)\] | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
-| Pruning | Reduce your model parameters or memory footprint and accelerate inference by removing unnecessary weights! | \[[General](./examples/pruning/)\] \[[Megatron-Bridge](./examples/megatron_bridge/)\] | |
-| Distillation | Reduce deployment model size by teaching small models to behave like larger models! | \[[Hugging Face](./examples/llm_distill/)\] \[[Megatron-Bridge](./examples/megatron_bridge/)\] \[[Megatron-LM](./examples/llm_distill/README.md#knowledge-distillation-kd-in-nvidia-megatron-lm-framework)\] | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/4_distillation.html)\] |
-| Speculative Decoding | Train draft modules to predict extra tokens during inference! | \[[Hugging Face](./examples/speculative_decoding/)\] \[[Megatron-LM](./examples/speculative_decoding#mlm-example)\] | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/5_speculative_decoding.html)\] |
-| Sparsity | Efficiently compress your model by storing only its non-zero parameter values and their locations | \[[Hugging Face](./examples/llm_sparsity/)\] | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/6_sparsity.html)\] |
+|             **技术**             |                       **描述**                        |                           **示例**                           |                           **文档**                           |
+| :------------------------------: | :---------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+|        后训练量化（PTQ）         | 将模型尺寸压缩 2-4 倍，在保持模型质量的同时加速推理！ | [HFLLMs/VLMs](./examples/hfptq/)[Megatron−BridgeLLMs/VLMs](./examples/megatronbridge/)[Diffusers](./examples/diffusers/)[ONNX](./examples/onnxptq/)[Windows](./examples/windows/) | [文档](https://nvidia.github.io/Model−Optimizer/guides/1quantization.html) |
+|  量化感知训练 / 蒸馏（QAT/QAD）  |      通过少量训练步骤进一步修正量化模型的精度！       | [HuggingFace](./examples/llmqat/)[Megatron−Bridge](./examples/megatronbridge) | [文档](https://nvidia.github.io/Model−Optimizer/guides/1quantization.html) |
+|         剪枝（Pruning）          |  通过移除不必要权重减小参数量或内存占用，加速推理！   | [通用](./examples/pruning/)[Megatron−Bridge](./examples/megatronbridge/) |                                                              |
+|     知识蒸馏（Distillation）     |      让小模型模仿大模型行为，缩减部署模型尺寸！       | [HuggingFace](./examples/llmdistill/)[Megatron−Bridge](./examples/megatronbridge/)[Megatron-LM](./examples/llm_distill/README.md#knowledge-distillation-kd-in-nvidia-megatron-lm-framework) | [文档](https://nvidia.github.io/Model−Optimizer/guides/4distillation.html) |
+| 推测解码（Speculative Decoding） |        训练 Draft 模块在推理时预测额外 Token！        | [HuggingFace](./examples/speculativedecoding/)[Megatron-LM](./examples/speculative_decoding#mlm-example) | [文档](https://nvidia.github.io/Model−Optimizer/guides/5speculativedecoding.html) |
+|        稀疏化（Sparsity）        |        仅存储非零参数值及其位置，高效压缩模型         |            [HuggingFace](./examples/llmsparsity/)            | [文档](https://nvidia.github.io/Model−Optimizer/guides/6sparsity.html) |
 
 </div>
 
-## Pre-Quantized Checkpoints
+## 预量化检查点
 
-- Ready-to-deploy checkpoints \[[🤗 Hugging Face - Nvidia Model Optimizer Collection](https://huggingface.co/collections/nvidia/inference-optimized-checkpoints-with-model-optimizer)\]
-- Deployable on [TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM), [vLLM](https://github.com/vllm-project/vllm) and [SGLang](https://github.com/sgl-project/sglang)
-- More models coming soon!
+- 开箱即用的可部署检查点 [🤗HuggingFace−NVIDIAModelOptimizer合集](https://huggingface.co/collections/nvidia/inference−optimized−checkpoints−with−model−optimizer)
 
-## Resources
+- 可部署于 [TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM)、[vLLM](https://github.com/vllm-project/vllm)和 [SGLang](https://github.com/sgl-project/sglang)
 
-- 📅 [Roadmap](https://github.com/NVIDIA/Model-Optimizer/issues/1699)
-- 📖 [Documentation](https://nvidia.github.io/Model-Optimizer)
-- 🎯 [Benchmarks](./examples/benchmark.md)
-- 💡 [Release Notes](https://nvidia.github.io/Model-Optimizer/reference/0_changelog.html)
-- 🐛 [File a bug](https://github.com/NVIDIA/Model-Optimizer/issues/new?template=1_bug_report.md)
-- ✨ [File a Feature Request](https://github.com/NVIDIA/Model-Optimizer/issues/new?template=2_feature_request.md)
+- 更多模型即将推出！
 
-## Model Support Matrix
+## 资源
 
-| Model Type | Support Matrix |
-|------------|----------------|
-| LLM / VLM Quantization | [View Support Matrix](./examples/hf_ptq/README.md#support-matrix) |
-| Diffusers Quantization | [View Support Matrix](./examples/diffusers/README.md#support-matrix) |
-| ONNX Quantization | [View Support Matrix](./examples/torch_onnx/README.md#onnx-export-supported-llm-models) |
-| Windows Quantization | [View Support Matrix](./examples/windows/README.md#support-matrix) |
-| Quantization Aware Training | [View Support Matrix](./examples/llm_qat/README.md#support-matrix) |
-| Pruning | [View Support Matrix](./examples/pruning/README.md#support-matrix) |
-| Distillation | [View Support Matrix](./examples/llm_distill/README.md#support-matrix) |
-| Speculative Decoding | [View Support Matrix](./examples/speculative_decoding/README.md#support-matrix) |
+- 📅 [路线图](https://github.com/NVIDIA/Model-Optimizer/issues/1699)
 
-## Deprecation Policy
+- 📖 [文档](https://nvidia.github.io/Model-Optimizer)
 
-Model Optimizer follows a structured approach to managing deprecated features:
+- 🎯 [基准测试](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/benchmark.md)
 
-- **Communication:** Deprecation notices are documented in the [Changelog](https://nvidia.github.io/Model-Optimizer/reference/0_changelog.html). Deprecated items include source code statements indicating deprecation timing, with runtime warnings issued upon use.
-- **Migration Period:** Since Model Optimizer is still pre-1.0, we provide a 1-release (~1-month) migration period after deprecation. During this window, deprecated features continue functioning while issuing warnings.
-- **Scope:** The policy addresses both complete deprecations (entire APIs removed) and partial ones (specific parameters removed while methods remain).
-- **Removal:** Following the migration period, deprecated elements are removed in alignment with semantic versioning standards, potentially including breaking changes in minor version updates while Model Optimizer remains in 0.x.
+- 💡 [发行说明](https://nvidia.github.io/Model-Optimizer/reference/0_changelog.html)
 
-## Citation
+- 🐛 [提交 Bug](https://github.com/NVIDIA/Model-Optimizer/issues/new?template=1_bug_report.md)
 
-If you use NVIDIA Model Optimizer in your research, please cite it as follows:
+- ✨ [功能需求](https://github.com/NVIDIA/Model-Optimizer/issues/new?template=2_feature_request.md)
 
-```bibtex
+## 模型支持矩阵
+
+| 模型类型                         | 支持矩阵                                                     |
+| -------------------------------- | ------------------------------------------------------------ |
+| LLM / VLM 量化                   | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/hf_ptq/README.md#support-matrix) |
+| Diffusers 量化                   | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/diffusers/README.md#support-matrix) |
+| ONNX 量化                        | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/torch_onnx/README.md#onnx-export-supported-llm-models) |
+| Windows 量化                     | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/windows/README.md#support-matrix) |
+| 量化感知训练（QAT/QAD）          | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/llm_qat/README.md#support-matrix) |
+| 剪枝（Pruning）                  | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/pruning/README.md#support-matrix) |
+| 知识蒸馏（Distillation）         | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/llm_distill/README.md#support-matrix) |
+| 推测解码（Speculative Decoding） | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/speculative_decoding/README.md#support-matrix) |
+
+## 弃用策略
+
+Model Optimizer 对弃用功能采用结构化管理办法：
+
+- **通知**：弃用说明记录于[变更日志](https://nvidia.github.io/Model-Optimizer/reference/0_changelog.html)。被弃用项含源码标注注明弃用时机，运行时若被调用将发出警告。
+
+- **迁移期**：由于 Model Optimizer 尚处于 pre-1.0 阶段，自弃用起提供 1 个版本（约 1 个月）的迁移窗口。期间弃用功能仍可正常工作并发出警告。
+
+- **范围**：适用于完整 API 移除及部分参数移除但方法保留的情形。
+
+- **移除**：迁移期结束后，弃用元素将在次版本更新时按语义化版本规范移除，0.x 阶段可能包含破坏性变更。
+
+## 引用
+
+若您在研究中使用了 NVIDIA Model Optimizer，请按如下方式引用：
+
+```
 @misc{nvidia-modelopt,
   author       = {{NVIDIA Corporation}},
   title        = {{NVIDIA Model Optimizer}},
@@ -162,16 +203,15 @@ If you use NVIDIA Model Optimizer in your research, please cite it as follows:
 }
 ```
 
-## Contributing
+## 贡献
 
-Model Optimizer is now open source! We welcome any feedback, feature requests and PRs.
-Please read our [Contributing](./CONTRIBUTING.md) guidelines for details on how to contribute to this project.
+Model Optimizer 现已开源！欢迎反馈、功能请求及 PR。请先阅读[贡献指南](https://yuanbao.tencent.com/chat/naQivTmsDa/CONTRIBUTING.md)了解参与方式。
 
 ## AI Agents
 
-For AI-assisted development setup, see the [agent tooling notes](./.agents/TOOLING.md).
+关于 AI 辅助开发环境配置，参见 [Agent 工具说明](https://yuanbao.tencent.com/chat/naQivTmsDa/.agents/TOOLING.md)。
 
-### Top Contributors
+### 主要贡献者
 
 [![Contributors](https://contrib.rocks/image?repo=NVIDIA/Model-Optimizer)](https://github.com/NVIDIA/Model-Optimizer/graphs/contributors)
 

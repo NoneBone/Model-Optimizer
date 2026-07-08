@@ -1,19 +1,21 @@
-# Quantize Deepseek models to FP4
+# 将 Deepseek 模型量化为 FP4
 
-This example will demonstrate the steps to quantize DeepSeek models to FP4 and export a unified checkpoint that can be deployed with TRT-LLM.
+ en [English](./README_en.md) ｜ zh_CN [简体中文](./README.md)
+ 
+本示例将演示将 DeepSeek 模型量化为 FP4 并导出可与 TRT-LLM 一起部署的统一检查点的步骤。
 
-## Setup
+## 设置
 
-Due to the model size, currently it requires 8xH200 or 16xH100 to quantize the FP8 model, we will use 8xH200 as example.
+由于模型大小，目前量化 FP8 模型需要 8xH200 或 16xH100，我们将以 8xH200 为例。
 
-## Directory Layout
+## 目录布局
 
-- `deepseek_v3/`: DeepSeek V3, R1, V3.1, and V3.2 FP4 quantization.
-- `deepseek_v4/`: DeepSeek V4 routed-expert NVFP4 quantization.
+- `deepseek_v3/`DeepSeek V3、R1、V3.1 和 V3.2 FP4 量化。
+- `deepseek_v4/`DeepSeek V4 路由专家 NVFP4 量化。
 
 ## DeepSeek V3 FP4
 
-### Convert the HF checkpoint for DeepSeek FP8 inference
+### 转换 DeepSeek FP8 推理的 HF 检查点
 
 ```bash
 # set up variables to run the example
@@ -33,7 +35,7 @@ huggingface-cli download deepseek-ai/DeepSeek-R1 --local-dir $HF_FP8_CKPT
 git clone https://github.com/deepseek-ai/DeepSeek-V3.git && cd DeepSeek-V3 && git checkout 9b4e978
 ```
 
-### [Experimental] DeepSeek V3.2
+### 【实验版】DeepSeek V3.2
 
 ```bash
 # download the FP8 checkpoint from Hugginface.
@@ -47,18 +49,18 @@ pip install git+https://github.com/Dao-AILab/fast-hadamard-transform.git
 pip install -r inference/requirements.txt
 ```
 
-### Convert the Checkpoint
+### 转换检查点
 
 ```bash
 # convert the HF checkpoint to a specific format for Deepseek
 python inference/convert.py --hf-ckpt-path $HF_FP8_CKPT --save-path $DS_CKPT --n-experts 256 --model-parallel 8
 ```
 
-## Post-training quantization
+## 训练后量化
 
-### Run the calibration scripts
+### 运行校准脚本
 
-DeepSeek V3, R1, V3.1
+DeepSeek V3、R1、V3.1
 
 ```bash
 torchrun --nproc-per-node 8 --master_port=12346 deepseek_v3/ptq.py --model_path $DS_CKPT --config DeepSeek-V3/inference/configs/config_671B.json --quant_cfg NVFP4_DEFAULT_CFG --output_path $FP4_QUANT_PATH
@@ -70,47 +72,47 @@ DeepSeek V3.2
 torchrun --nproc-per-node 8 --master_port=12346 deepseek_v3/ptq.py --model_path $DS_CKPT --config DeepSeek-V3.2-Exp/inference/config_671B_v3.2.json --quant_cfg NVFP4_DEFAULT_CFG --output_path $FP4_QUANT_PATH
 ```
 
-#### MoE expert calibration
+#### 教育部专家校准
 
-By default, calibration uses the model's native top-k routing and then runs a
-post-calibration sync that sets every expert's `input_quantizer.amax` (w1/w2/w3)
-to the per-layer global peer max (all-reduced across EP ranks).
-`weight_quantizer.amax` stays per-expert; any uncalibrated expert falls back to
-a compute path over the dequantized FP8 weight. This mirrors the
-`layer_sync_moe_local_experts_amax` flow that mtq runs automatically for
-QuantSequentialMLP-derived MoEs.
+默认情况下，校准使用模型的原生 top-k 路由，然后运行
+校准后同步，设置每位专家的 `input_quantizer.amax` （w1/w2/w3）
+到每层全局对等最大值（跨 EP 等级全部减少）。
+`weight_quantizer.amax` 始终以专家为单位；任何未经校准的专家都只能退而求其次。
+一条基于去量化FP8权重的计算路径。这与……相呼应
+`layer_sync_moe_local_experts_amax` mtq 自动运行的流程
+QuantSequentialMLP 衍生的 MoE。
 
-To restore the original behavior — force every token through every expert
-during calibration (slower, ~2x forwards, no post-calibration sync) — pass
-`--calib_all_experts`:
+要恢复原始行为——强制每个令牌都经过每个专家。
+校准期间（速度较慢，正向扫描速度约为原来的 2 倍，无校准后同步）——通过
+`--calib_all_experts`：
 
 ```bash
 torchrun --nproc-per-node 8 --master_port=12346 deepseek_v3/ptq.py --model_path $DS_CKPT --config DeepSeek-V3.2-Exp/inference/config_671B_v3.2.json --quant_cfg NVFP4_DEFAULT_CFG --output_path $FP4_QUANT_PATH --calib_all_experts
 ```
 
-A summary of every TensorQuantizer is written to `$FP4_QUANT_PATH/.quant_summary.txt`.
+每个张量量化器的摘要都会被写入到 `$FP4_QUANT_PATH/.quant_summary.txt`。
 
-### Quantize the FP8 hf checkpoint to FP4
+### 将 FP8 高频检查点量化为 FP4
 
-We provide a one-step-script which will:
+我们提供一个一步到位的脚本，它将：
 
-- Quantize the weights to NVFP4
-- Copy miscellaneous files to the quantized checkpoint
+- 将权重量化为 NVFP4
+- 将杂项文件复制到量化检查点
 
 ```bash
 ./deepseek_v3/quantize_fp8_to_nvfp4.sh --amax_path $FP4_QUANT_PATH --fp4_output_path $HF_FP4_PATH --fp8_hf_path $HF_FP8_CKPT --world_size 8
 ```
 
-## DeepSeek V4 routed-expert NVFP4
+## DeepSeek V4 路由专家 NVFP4
 
-DeepSeek V4 uses a mixed native checkpoint layout. The V4 recipe quantizes
-only the routed experts to NVFP4 W4A4 and leaves attention projections, the
-router gate, shared experts, embeddings, and the LM head in their original
-formats.
+DeepSeek V4 采用混合原生检查点布局。V4 版本对检查点进行了量化。
+只有被路由到 NVFP4 W4A4 的专家才会关注预测，
+路由器门、共享专家、嵌入以及 LM 头在其原始状态下
+格式。
 
-### Prepare the MP checkpoint
+### 准备 MP 检查点
 
-Keep experts in MXFP4 when resharding with DeepSeek's own `convert.py`:
+在使用 DeepSeek 的 MXFP4 进行重新分片时，请保留专家级配置。 `convert.py`：
 
 ```bash
 export DS_V4=/path/to/DeepSeek-V4-Pro
@@ -126,9 +128,9 @@ python ${DS_V4}/inference/convert.py \
     --model-parallel ${MP}
 ```
 
-### Calibrate routed experts
+### 校准路由专家
 
-Single node:
+单节点：
 
 ```bash
 torchrun --nproc-per-node ${MP} --master_port 12346 deepseek_v4/ptq.py \
@@ -138,7 +140,7 @@ torchrun --nproc-per-node ${MP} --master_port 12346 deepseek_v4/ptq.py \
     --output_path ${AMAX}
 ```
 
-Two 4-GPU nodes for `MP=8`:
+两个配备 4 个 GPU 的节点 `MP=8`：
 
 ```bash
 # node 0
@@ -158,11 +160,11 @@ torchrun --nnodes=2 --node_rank=1 --master_addr=<ip> --master_port=12346 \
     --output_path ${AMAX}
 ```
 
-### Export back to HF shard layout
+### 导出回 HF 分片布局
 
-`deepseek_v4/quantize_to_nvfp4.py` operates on the original HF-style V4 checkpoint and
-produces a new HF-style checkpoint with routed expert weights replaced by
-NVFP4 tensors plus `weight_scale`, `weight_scale_2`, and `input_scale`.
+`deepseek_v4/quantize_to_nvfp4.py` 在原有的HF型V4检查点上运行，
+生成一个新的 HF 风格检查点，其中路由的专家权重被替换为
+NVFP4 张量加 `weight_scale`， `weight_scale_2`， 和 `input_scale`。
 
 ```bash
 python deepseek_v4/quantize_to_nvfp4.py \
@@ -171,28 +173,28 @@ python deepseek_v4/quantize_to_nvfp4.py \
     --output_ckpt ${HF_NVFP4_PATH}
 ```
 
-The output includes an updated `model.safetensors.index.json`, a `config.json`
-with `quantization_config.moe_quant_algo = "NVFP4"`, and `hf_quant_config.json`
-describing the mixed NVFP4 expert layers.
+输出结果包含更新后的内容 `model.safetensors.index.json`，一个 `config.json`
+和 `quantization_config.moe_quant_algo = "NVFP4"`， 和 `hf_quant_config.json`
+描述混合的 NVFP4 专家层。
 
-When the source routed experts are MXFP4 (as in the V4 release), add
-`--cast_mxfp4_to_nvfp4` for a lossless weight conversion — recommended over the
-default lossy dequant/re-quant path. See below.
+当源路由专家为 MXFP4 时（如 V4 版本中），添加
+`--cast_mxfp4_to_nvfp4` 为了实现无损重量转换——建议使用……
+默认的有损去量化/再量化路径。请参见下文。
 
-#### Lossless MXFP4 → NVFP4 weight cast (`--cast_mxfp4_to_nvfp4`)
+#### 无损 MXFP4 → NVFP4 加权转换 (`--cast_mxfp4_to_nvfp4`）
 
-The routed experts in the source checkpoint are already MXFP4 (E2M1 nibbles +
-a power-of-two E8M0 scale per 32-element block). Without the flag, the export
-dequantizes them to BF16 and re-quantizes to NVFP4 using the calibrated
-per-tensor weight amax, which re-derives the per-block scales from the data and
-is therefore lossy. With `--cast_mxfp4_to_nvfp4`, the per-tensor `scale_2` is
-pinned to `2^(k_max - 8)` and each per-block E4M3 scale to `2^(k_j - m)` straight
-from the source E8M0 scales, so `per_block_scale * scale_2 = 2^k_j` and the NVFP4
-nibbles equal the source MXFP4 nibbles bit-for-bit (for every block whose `k_j`
-lands in E4M3's representable window; the rare out-of-range block falls back to a
-data-derived scale). The flag only affects routed-expert **weights** — activation
-`input_scale` still comes from `${AMAX}` calibration — and the run prints a
-`[cast] lossless MXFP4->NVFP4 blocks: …` summary. This mirrors the GPTOSS cast in
-[`examples/hf_ptq/cast_mxfp4_to_nvfp4.py`](../hf_ptq/cast_mxfp4_to_nvfp4.py); the
-V4 twist is that w1/w3 share one `scale_2` (fused GEMM1), so `k_max` is taken over
-both projections.
+源检查点中的路由专家已经是 MXFP4（E2M1 nibbles +
+每个 32 元素块采用 2 的幂次方 E8M0 比例）。如果没有该标志，则导出
+使用校准后的BF16对其进行去定量，然后重新定量为NVFP4。
+每个张量权重 amax，它从数据中重新导出每个块的尺度，
+因此，它是有损的。 `--cast_mxfp4_to_nvfp4`每个张量 `scale_2` 是
+固定到 `2^(k_max - 8)` 每个模块的 E4M3 比例 `2^(k_j - m)` 直的
+来自 E8M0 标尺的来源，所以 `per_block_scale * scale_2 = 2^k_j` 以及 NVFP4
+半字节与源 MXFP4 半字节逐位相等（对于每个块， `k_j`
+落在 E4M3 的可表示窗口中；罕见的超出范围的块回退到 a
+（数据衍生尺度）。该标志仅影响路由专家**权重**——激活
+`input_scale` 仍然来自 `${AMAX}` 校准——运行结果会打印出来
+`[cast] lossless MXFP4->NVFP4 blocks: …` 摘要。这与 GPTOSS 的演员阵容相呼应。
+[`examples/hf_ptq/cast_mxfp4_to_nvfp4.py`](../hf_ptq/cast_mxfp4_to_nvfp4.py); 这
+V4 的变化在于 w1/w3 共享一个 `scale_2` （融合的GEMM1），所以 `k_max` 被接管
+两种预测。

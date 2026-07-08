@@ -1,36 +1,38 @@
-# Quantization-Aware Training (QAT) for CNNs
+# 面向卷积神经网络的量化感知训练（QAT）
 
-Quantization-Aware Training (QAT) with NVIDIA ModelOpt injects simulated quantization noise during training to recover accuracy lost by Post-Training Quantization (PTQ). A CNN model quantized via `mtq.quantize()` can be fine-tuned using your existing training loop. During QAT, the quantizer scales are frozen while the model weights adapt.
+ en [English](./README_en.md) ｜ zh_CN [简体中文](./README.md)
+ 
+NVIDIA ModelOpt 的量化感知训练 (QAT) 在训练过程中注入模拟量化噪声，以恢复因训练后量化 (PTQ) 而损失的精度。一个通过量化的 CNN 模型 `mtq.quantize()` 可以使用现有的训练循环进行微调。在 QAT 期间，量化器尺度会被冻结，而模型权重则会进行调整。
 
-Learn more in the [ModelOpt QAT guide](https://nvidia.github.io/Model-Optimizer/guides/_pytorch_quantization.html#quantization-aware-training-qat).
+了解更多信息。 [ModelOpt QAT guide](https://nvidia.github.io/Model-Optimizer/guides/_pytorch_quantization.html#quantization-aware-training-qat)。
 
-> **_NOTE:_** This example uses a TorchVision ResNet-50 on an ImageNet-style dataset, but you can extend the same steps to any CNN and computer-vision dataset.
+> **_注意：_** 本示例使用 TorchVision ResNet-50 和 ImageNet 风格的数据集，但您可以将相同的步骤扩展到任何 CNN 和计算机视觉数据集。
 
-## System Requirements
+## 系统要求
 
-- GPU: ≥1 CUDA-capable NVIDIA GPU
-- Memory & Performance: Varies by model, batch size, and image resolution
+- GPU：≥1 个支持 CUDA 的 NVIDIA GPU
+- 内存和性能：因型号、批处理大小和图像分辨率而异
 
-## QAT Workflow
+## QAT 工作流程
 
-1. Load and evaluate your full-precision (FP32/FP16) model on the target task.
+1. 在目标任务上加载并评估您的全精度（FP32/FP16）模型。
 
-1. Quantize the FP32/FP16 model via
+1. 通过以下方式量化 FP32/FP16 模型
 
 ```python
 model = mtq.quantize(model, mtq.INT8_DEFAULT_CFG, calibrate_fn)
 ```
 
-then re-evaluate to establish a quantized baseline.
+然后重新评估以建立量化基线。
 
-1. Fine-tune the quantized model with a small learning rate to recover accuracy.
+1. 使用较小的学习率对量化模型进行微调，以恢复准确率。
 
-> **_NOTES:_**
+> **_笔记：_**
 >
-> - Optimal hyperparameters (learning rate, epochs, etc.) depend on your model and data.
-> - If you already have a PTQ-quantized model, you can skip straight to step 3.
+> - 最优超参数（学习率、迭代次数等）取决于你的模型和数据。
+> - 如果您已经有一个 PTQ 量化模型，您可以直接跳到步骤 3。
 
-Here is an example code structure for performing QAT with a CNN:
+以下是使用 CNN 执行 QAT 的示例代码结构：
 
 ```python
 from modelopt.torch.quantization import mtq
@@ -64,24 +66,24 @@ mto.restore(model, "cnn_qat_best.pth")
 model.to(device)
 ```
 
-See the full script [torchvision_qat.py](./torchvision_qat.py) for all boilerplate (argument parsing, DDP setup, logging, etc.).
+查看完整剧本 [torchvision_qat.py](./torchvision_qat.py) 对所有样板代码（参数解析、DDP 设置、日志记录等）进行处理。
 
-> **_NOTE:_** The example above uses [mto.save](https://nvidia.github.io/Model-Optimizer/guides/2_save_load.html#saving-modelopt-models) and [mto.restore](https://nvidia.github.io/Model-Optimizer/guides/2_save_load.html#restoring-modelopt-models) for saving and restoring ModelOpt modified models. These functions handle the model weights as well as the quantizer states. Please see [saving & restoring](https://nvidia.github.io/Model-Optimizer/guides/2_save_load.html) to learn more.
+> **_注意：_** 以上示例使用 [mto.save](https://nvidia.github.io/Model-Optimizer/guides/2_save_load.html#saving-modelopt-models) 和 [mto.restore](https://nvidia.github.io/Model-Optimizer/guides/2_save_load.html#restoring-modelopt-models) 用于保存和恢复 ModelOpt 修改后的模型。这些函数处理模型权重以及量化器状态。请参阅 [saving & restoring](https://nvidia.github.io/Model-Optimizer/guides/2_save_load.html) 了解更多信息。
 
-### End-to-end QAT Example
+### 端到端 QAT 示例
 
-This folder contains an end-to-end runnable QAT pipeline for a ResNet50 model on an ImageNet-style dataset using the [torchvision_qat.py](./torchvision_qat.py) script.
+此文件夹包含一个端到端的可运行 QAT 流程，用于在 ImageNet 风格的数据集上使用 ResNet50 模型。 [torchvision_qat.py](./torchvision_qat.py) 脚本。
 
-The script performs the following steps:
+该脚本执行以下步骤：
 
-- Loads a pre-trained ResNet50 model from TorchVision.
-- Evaluates its FP32 accuracy on the validation set.
-- Performs PTQ (INT8 quantization by default) using a calibration subset of the validation data.
-- Evaluates the PTQ model accuracy.
-- Performs QAT for a specified number of epochs.
-- Evaluates the QAT model accuracy after each epoch and saves the best performing model.
+- 从 TorchVision 加载预训练的 ResNet50 模型。
+- 在验证集上评估其 FP32 准确率。
+- 使用验证数据的校准子集执行 PTQ（默认 INT8 量化）。
+- 评估PTQ模型的准确性。
+- 执行指定次数的 QAT 训练。
+- 在每个训练周期结束后评估 QAT 模型准确率，并保存性能最佳的模型。
 
-Here is an example command for multi-GPU QAT using `torchrun`:
+以下是使用多 GPU QAT 的示例命令 `torchrun`：
 
 ```sh
 torchrun --nproc_per_node <num_gpus> torchvision_qat.py \
@@ -95,7 +97,7 @@ torchrun --nproc_per_node <num_gpus> torchvision_qat.py \
     --output-dir ./resnet50_qat_output
 ```
 
-For single-GPU training, you can run:
+对于单GPU训练，您可以运行：
 
 ```sh
 python torchvision_qat.py \
@@ -110,9 +112,9 @@ python torchvision_qat.py \
     --gpu 0 # Specify the GPU ID
 ```
 
-> **_TIP:_** For single-GPU runs, you can also use the `CUDA_VISIBLE_DEVICES` environment variable to control GPU visibility. For instance, `CUDA_VISIBLE_DEVICES=1 python torchvision_qat.py ... --gpu 0` will run the script on physical GPU 1, as PyTorch will see it as `cuda:0`.
+> **提示：** 对于单 GPU 运行，您还可以使用 `CUDA_VISIBLE_DEVICES` 使用环境变量控制 GPU 可见性。例如： `CUDA_VISIBLE_DEVICES=1 python torchvision_qat.py ... --gpu 0` 脚本将在物理 GPU 1 上运行，因为 PyTorch 会将其识别为 GPU 1。 `cuda:0`。
 
-Customize flags— `--epochs`, `--lr`, `--batch-size`, etc. to fit your hardware and data. Also you may use other quantization formats from **ModelOpt**. Please see more details on the supported quantization formats and how to use them as shown below:
+自定义旗帜— `--epochs`， `--lr`， `--batch-size`等等，以适应您的硬件和数据。您还可以使用 **ModelOpt** 提供的其他量化格式。有关支持的量化格式及其使用方法的更多详细信息，请参见下文：
 
 ```python
 import modelopt.torch.quantization as mtq
@@ -121,26 +123,26 @@ import modelopt.torch.quantization as mtq
 help(mtq.config)
 ```
 
-You can then modify the `quant_cfg` in `torchvision_qat.py` accordingly.
+然后您可以修改 `quant_cfg` 在 `torchvision_qat.py` 因此。
 
-> **_NOTES:_**
+> **_笔记：_**
 >
-> - QAT can sometimes require more memory than full-precision fine-tuning due to the storage of quantization parameters and potentially different optimizer states.
-> - Like any other model training, the QAT model accuracy can be further improved by optimizing the training hyper-parameters such as learning rate, training duration, weight decay, and choice of optimizer and scheduler.
+> - 由于需要存储量化参数和可能不同的优化器状态，​​QAT 有时可能需要比全精度微调更多的内存。
+> - 与其他模型训练一样，QAT 模型的准确率可以通过优化训练超参数（如学习率、训练持续时间、权重衰减以及优化器和调度器的选择）来进一步提高。
 
-## Example Results
+## 示例结果
 
-| Model Stage | Accuracy (Top-1) |
+| 模型阶段 | 准确率（前1名） |
 |-----------------|------------------|
-| FP32 ResNet50 | ~76.1% |
+| FP32 ResNet50 | 约 76.1% |
 | PTQ INT8 | ~75.5% |
-| QAT INT8 | ~75.9% |
+| INT8层 | 约75.9% |
 
-Your actual results will vary based on the dataset, specific hyperparameters, and training duration. Typically, you should observe:
+实际结果会因数据集、具体超参数和训练时长而异。通常情况下，您应该观察到：
 
-- PTQ accuracy may be slightly lower than FP32 accuracy.
-- QAT should help recover some or all of the accuracy lost during PTQ, and potentially even exceed the FP32 baseline in some cases, or get very close to it.
+- PTQ 准确率可能略低于 FP32 准确率。
+- QAT 应该有助于恢复 PTQ 期间损失的部分或全部准确性，并且在某些情况下甚至有可能超过 FP32 基线，或者非常接近它。
 
-## Deployment with TensorRT
+## 使用 TensorRT 进行部署
 
-The final model after QAT, saved using `mto.save()`, contains both the model weights and the quantization metadata. This model can be deployed to TensorRT for inference after ONNX export. The process is generally similar to [deploying an ONNX PTQ](../onnx_ptq/README.md#evaluate-the-quantized-onnx-model) model from ModelOpt.
+QAT 后的最终模型，已保存 `mto.save()`该文件包含模型权重和量化元数据。导出 ONNX 格式后，该模型可以部署到 TensorRT 进行推理。该过程与上述过程大致类似。 [deploying an ONNX PTQ](../onnx_ptq/README.md#evaluate-the-quantized-onnx-model) 来自 ModelOpt 的模型。

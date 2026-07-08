@@ -1,46 +1,67 @@
-# Agent Instructions for ModelOpt
+# ModelOpt 的 Agent 指令
 
-These instructions apply to AI-assisted work in this repository.
+这些指令适用于本仓库中由 AI 辅助的工作。
 
-## Repository orientation
+## 仓库导航
 
-- Start with `README.md` for project overview and install.
-- Use `modelopt/` for source, `tests/` for focused test coverage, and
-  `examples/` or `docs/` for usage patterns.
-- **Agent skills and shared config live under `.agents/`** — the canonical,
-  agent-agnostic source of truth (`.agents/skills/<name>/SKILL.md`,
-  `.agents/scripts/`, `.agents/clusters.yaml.example`). Claude Code's
-  `.claude/skills`, `.claude/scripts`, and `.claude/clusters.yaml.example` are
-  relative symlinks into `.agents/`. Always edit files under `.agents/`, not the
-  symlink path. See `.agents/README.md` for the convention.
+- 从 `README.md`开始了解项目概览和安装方式。
 
-## Coding guidelines
+- 源代码位于 `modelopt/`，聚焦的测试覆盖在 `tests/`中，
 
-- **Coding guide:** Code development and review require reading and following
-  the [coding standards in CONTRIBUTING.md](CONTRIBUTING.md#-coding-standards);
-  do not skip this step.
-- **Use relative paths** from the repo root in commands and file references.
+  使用模式见 `examples/`或 `docs/`。
 
-## Iterative development
+- **Agent 技能和共享配置位于 `.agents/`下**——这是规范的、
 
-- **Running tests:** Follow the
-  [writing and running tests](CONTRIBUTING.md#-writing-and-running-tests)
-  instructions. For fast initial iteration, choose focused tests for the
-  changed area from `tests/`.
-- **Running pre-commit:** Follow the
-  [pre-commit hook instructions](CONTRIBUTING.md#pre-commit-hooks). Hooks may
-  modify files; review and re-stage those changes before committing.
-- **Signed commit:** Use `git commit -s -S -m "<message>"` for commits so they
-  follow the [signing your work](CONTRIBUTING.md#-signing-your-work)
-  requirements.
-- **Never `git push` without explicit approval in the current turn.** Commit
-  locally is fine; publishing to a remote is not.
-- After `git commit`, stop and wait for the user to say "push", "publish",
-  "ship", or equivalent before running `git push`, `gh pr create`, or any
-  push-option flags like `-o merge_request.create`.
+  与 Agent 无关的权威来源（`.agents/skills/<名称>/SKILL.md`、
 
-## Contributing and PR readiness
+  `.agents/scripts/`、`.agents/clusters.yaml.example`）。Claude Code 的
 
-- Before opening or marking a PR ready for review, read the
-  [submitting your code](CONTRIBUTING.md#submitting-your-code) guidance.
-- Read `.github/PULL_REQUEST_TEMPLATE.md` and satisfy the checklist.
+  `.claude/skills`、`.claude/scripts`和 `.claude/clusters.yaml.example`是指向
+
+  `.agents/`的相对符号链接。始终编辑 `.agents/`下的文件，而不是符号链接路径。
+
+  参见 `.agents/README.md`了解此约定。
+
+## 编码指南
+
+- **编码指南：** 代码开发和审查需要阅读并遵循
+
+  [CONTRIBUTING.md 中的编码标准](#-coding-standards)；
+
+  不要跳过此步骤。
+
+- **在命令和文件引用中使用相对于仓库根目录的相对路径。**
+
+## 迭代开发
+
+- **运行测试：** 遵循
+
+  [编写和运行测试](#-writing-and-running-tests)
+
+  的说明。为了快速初始迭代，从 `tests/`中选择针对变更区域的聚焦测试。
+
+- **运行 pre-commit：** 遵循
+
+  [pre-commit 钩子说明](#pre-commit-hooks)。钩子可能会修改文件；
+
+  在提交前审查并重新暂存这些更改。
+
+- **签名提交：** 使用 `git commit -s -S -m "<消息>"`进行提交，以满足
+
+  [签署您的工作](#-signing-your-work)的要求。
+
+- **在当前轮次中，未经明确批准切勿 `git push`。** 本地提交没问题；但不要发布到远程。
+
+- 在 `git commit`之后，等待用户说 "push"、"publish"、
+
+  "ship" 或类似词语后，再运行 `git push`、`gh pr create`
+
+  或任何推送选项标志如 `-o merge_request.create`。
+
+## 贡献和 PR 就绪状态
+
+- 在打开 PR 或将其标记为准备审查之前，请阅读
+
+  [提交您的代码](#submitting-your-code)指南。
+
+- 阅读 `.github/PULL_REQUEST_TEMPLATE.md`并满足清单中的要求。

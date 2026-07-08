@@ -1,48 +1,50 @@
-# Serve fakequant models with vLLM
+# 使用 vLLM 为 fakequant 模型提供服务
 
-This is a simple example to demonstrate calibrating and serving ModelOpt fakequant models in vLLM.
+ en [English](./README_en.md) ｜ zh_CN [简体中文](./README.md)
+ 
+这是一个简单的示例，用于演示如何在 vLLM 中校准和提供 ModelOpt fakequant 模型。
 
-Compared with realquant, fakequant is 2-5x slower, but doesn't require dedicated kernel support and facilitates research.
+与 RealQuant 相比，FakeQuant 的速度慢 2-5 倍，但不需要专门的内核支持，并且有利于研究。
 
-This example is tested with vllm 0.9.0 and 0.19.1
+本示例已使用 vllm 0.9.0 和 0.19.1 版本进行测试。
 
-## Prepare environment
+## 准备环境
 
-Follow the following instruction to build a docker environment, or install vllm with pip.
+请按照以下说明构建 docker 环境，或使用 pip 安装 vllm。
 
 ```bash
 docker build -f examples/vllm_serve/Dockerfile -t vllm-modelopt .
 ```
 
-## Calibrate and serve fake quant model in vLLM
+## 在 vLLM 中校准和部署虚假量化模型
 
-Step 1: Configure quantization settings.  
-You can either edit the `quant_config` dictionary in `vllm_serve_fakequant.py`, or set the following environment variables to control quantization behavior:
+步骤 1：配置量化设置。  
+你可以编辑 `quant_config` 字典 `vllm_serve_fakequant.py`或者设置以下环境变量来控制量化行为：
 
-| Variable        | Description                                      | Default             |
-|-----------------|--------------------------------------------------|---------------------|
-| QUANT_DATASET   | Dataset name for calibration                     | cnn_dailymail       |
-| QUANT_CALIB_SIZE| Number of samples used for calibration           | 512                 |
-| QUANT_CFG       | Quantization config                              | None                |
-| KV_QUANT_CFG    | KV-cache quantization config                     | None                |
-| QUANT_FILE_PATH | Optional path to exported quantizer state dict `quantizer_state.pth` | None |
-| MODELOPT_STATE_PATH | Optional path to exported `vllm_fq_modelopt_state.pth` (restores quantizer state and parameters) | None |
-| CALIB_BATCH_SIZE | Calibration batch size                           | 1                  |
-| RECIPE_PATH      | Optional path to a ModelOpt PTQ recipe YAML  | None |
+| 变量                | 描述                                                         | 默认值        |
+| ------------------- | ------------------------------------------------------------ | ------------- |
+| QUANT_DATASET       | 用于校准的数据集名称                                         | cnn_dailymail |
+| QUANT_CALIB_SIZE    | 用于校准的样本数量                                           | 512           |
+| QUANT_CFG           | 量化配置                                                     | 无            |
+| KV_QUANT_CFG        | KV缓存量化配置                                               | 无            |
+| QUANT_FILE_PATH     | 导出的量化器状态字典的可选路径 `quantizer_state.pth`         | 无            |
+| MODELOPT_STATE_PATH | 可选的导出路径 `vllm_fq_modelopt_state.pth` （恢复量化器状态和参数） | 无            |
+| CALIB_BATCH_SIZE    | 校准批次大小                                                 | 1             |
+| RECIPE_PATH         | ModelOpt PTQ 配方 YAML 的可选路径                            | 无            |
 
-Set these variables in your shell or Docker environment as needed to customize calibration.
+根据需要，在您的 shell 或 Docker 环境中设置这些变量以自定义校准。
 
-Step 2: Run the following command, with all supported flag as `vllm serve`:
+步骤 2：运行以下命令，并启用所有支持的标志。 `vllm serve`：
 
 ```bash
 python vllm_serve_fakequant.py <model_path> -tp 8 --host 0.0.0.0 --port 8000
 ```
 
-For vLLM versions that expose `--moe-backend`, this launcher defaults to `--moe-backend triton`.
-ModelOpt expert fakequant needs a decomposed MoE backend so both expert GEMMs are visible during
-calibration.
+对于公开的 vLLM 版本 `--moe-backend`该启动器默认设置为 `--moe-backend triton`。
+ModelOpt 专家 fakequant 需要一个分解的 MoE 后端，以便在过程中两个专家 GEMM 都可见。
+校准。
 
-Step 3: test the API server with curl:
+步骤 3：使用 curl 测试 API 服务器：
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/v1/chat/completions"     -H "Content-Type: application/json"     -d '{
@@ -55,17 +57,17 @@ curl -X POST "http://127.0.0.1:8000/v1/chat/completions"     -H "Content-Type: a
 
 ```
 
-Step 4 (Optional): using lm_eval to run evaluation
+步骤 4（可选）：使用 lm_eval 运行评估
 
 ```bash
 lm_eval --model local-completions --tasks gsm8k --model_args model=<model_name>,base_url=http://127.0.0.1:8000/v1/completions,num_concurrent=1,max_retries=3,tokenized_requests=False,batch_size=128,tokenizer_backend=None
 ```
 
-## Load QAT/PTQ model and serve in vLLM (WIP)
+## 加载 QAT/PTQ 模型并在 vLLM 中运行（进行中）
 
-Step 1: export the model with bf16 weights and quantizer state. To export the model:
+步骤 1：导出包含 BF16 权重和量化器状态的模型。导出模型的方法如下：
 
-- For **HF** models, use `examples/hf_ptq/hf_ptq.py` with `--vllm_fakequant_export`:
+- 对于 **HF** 型号，请使用 `examples/hf_ptq/hf_ptq.py` 和 `--vllm_fakequant_export`：
 
 ```bash
 python ../hf_ptq/hf_ptq.py \
@@ -77,52 +79,52 @@ python ../hf_ptq/hf_ptq.py \
   --trust_remote_code
 ```
 
-  This creates `<EXPORT_DIR>/vllm_fq_modelopt_state.pth` (ModelOpt quantizer state for vLLM fake-quant reload) and saves the HF-exported model under `<EXPORT_DIR>` (config/tokenizer/weights).
+  这将产生 `<EXPORT_DIR>/vllm_fq_modelopt_state.pth` （用于 vLLM 伪量化重载的 ModelOpt 量化器状态）并将 HF 导出的模型保存到 `<EXPORT_DIR>` （config/tokenizer/weights）。
 
-  Note: `--pyt_ckpt_path` can point to either an HF checkpoint or a ModelOpt-saved checkpoint (e.g., a QAT/QAD checkpoint produced by `examples/llm_qat/train.py`). If the input checkpoint is already quantized, the script will **skip re-quantization** and only export artifacts for vLLM fakequant reload.
+  笔记： `--pyt_ckpt_path` 可以指向 HF 检查点或 ModelOpt 保存的检查点（例如，由 QAT/QAD 生成的检查点）。 `examples/llm_qat/train.py`如果输入检查点已经量化，则脚本将**跳过重新量化**，仅导出用于 vLLM fakequant 重新加载的工件。
 
-- For **MCore** models, export the model with flag `--export-vllm-fq` as described in [Megatron-LM README](https://github.com/NVIDIA/Megatron-LM/tree/main/examples/post_training/modelopt#-nvfp4-quantization-qauntization-aware-training-and-model-export). This generates `quantizer_state.pth`, which contains quantizer tensors for vLLM reload via `QUANT_FILE_PATH`.
+- 对于 **MCore** 模型，请使用标志导出模型。 `--export-vllm-fq` 如上文所述 [Megatron-LM README](https://github.com/NVIDIA/Megatron-LM/tree/main/examples/post_training/modelopt#-nvfp4-quantization-qauntization-aware-training-and-model-export)这将生成 `quantizer_state.pth`其中包含用于通过 vLLM 重新加载的量化器张量 `QUANT_FILE_PATH`。
 
-Step 2: use the exported artifacts when serving:
+步骤 2：在提供服务时使用导出的工件：
 
-- **HF export**: pass the exported `vllm_fq_modelopt_state.pth` via `MODELOPT_STATE_PATH`
+- **HF导出**：传递导出的数据 `vllm_fq_modelopt_state.pth` 通过 `MODELOPT_STATE_PATH`
 
 ```bash
 # HF
 MODELOPT_STATE_PATH=<vllm_fq_modelopt_state.pth> python vllm_serve_fakequant.py <model_path> -tp 8 --host 0.0.0.0 --port 8000
 ```
 
-- **MCore export**: pass the exported `quantizer_state.pth` via `QUANT_FILE_PATH` and set `QUANT_CFG` to match the MCore quantization recipe
+- **MCore 导出**：传递导出的内容 `quantizer_state.pth` 通过 `QUANT_FILE_PATH` 并设置 `QUANT_CFG` 为了与 MCore 量化方案相匹配
 
 ```bash
 # MCore
 QUANT_CFG=<quant_cfg> QUANT_FILE_PATH=<quantizer_state.pth> python vllm_serve_fakequant.py <model_path> -tp 8 --host 0.0.0.0 --port 8000
 ```
 
-## Serve a model with sparse attention in vLLM
+## 在 vLLM 中应用稀疏注意力模型
 
-Apply ModelOpt sparse attention at serve time. The launcher replaces vLLM's `FlashAttentionImpl` with `ModelOptSparseAttentionImpl` (Triton kernel with paged KV cache support) on every attention layer right after model load.
+在服务时应用 ModelOpt 稀疏注意力机制。启动器替换了 vLLM 的 `FlashAttentionImpl` 和 `ModelOptSparseAttentionImpl` 模型加载后，在每个注意力层上立即应用（支持分页KV缓存的Triton内核）。
 
-The configuration is read from the checkpoint's `config.json` `sparse_attention_config` block, written by ModelOpt's HF export. The launcher restores calibrated skip-softmax metadata and N:M sparse-softmax metadata (`sparsity_n`, `sparsity_m`, `dense_sink_tokens`, `dense_recent_tokens`). Checkpoints exported with both metadata entries use ModelOpt Triton for sparse prefill launches; decode-only launches and launches without active sparse work delegate back to vLLM FlashAttention.
+配置信息是从检查点读取的。 `config.json` `sparse_attention_config` 该模块由 ModelOpt 的 HF 导出写入。启动器恢复校准后的 skip-softmax 元数据和 N:M sparse-softmax 元数据（`sparsity_n`， `sparsity_m`， `dense_sink_tokens`， `dense_recent_tokens`）。使用两个元数据条目导出的检查点使用 ModelOpt Triton 进行稀疏预填充启动；仅解码启动和没有活动稀疏工作的启动委托回 vLLM FlashAttention。
 
-Workflow:
+工作流程：
 
-1. Calibrate and export the model with `examples/llm_sparsity/attention_sparsity/hf_sa.py`. This writes `sparse_attention_config` into the exported checkpoint's `config.json`.
-2. Serve the exported checkpoint with `--enforce-eager` (CUDA graph capture is not yet validated with the sparse attention kernel — see Known Problems):
+1. 使用以下方式校准并导出模型 `examples/llm_sparsity/attention_sparsity/hf_sa.py`这段文字 `sparse_attention_config` 导入到导出的检查点中 `config.json`。
+2. 使用以下命令提供导出的检查点 `--enforce-eager` （CUDA 图捕获尚未通过稀疏注意力核的验证——请参阅已知问题）：
 
    ```bash
    python vllm_serve_sparse_attn.py <EXPORT_DIR> --enforce-eager -tp 8 --host 0.0.0.0 --port 8000
    ```
 
-If the checkpoint has no `sparse_attention_config`, the worker logs a message and passes through — vLLM runs unchanged. Quant-only flows are handled by `vllm_serve_fakequant.py`; combined sparse + quant will land in a follow-up PR.
+如果检查点没有 `sparse_attention_config`工作进程记录一条消息并继续传递——vLLM 保持不变。仅限量化交易的流程由……处理。 `vllm_serve_fakequant.py`; 稀疏 + 量化相结合的方法将在后续的 PR 中实现。
 
-Limitations:
+局限性：
 
-- vLLM V1 chunked prefill and prefix-cache suffix attention are supported by offsetting query positions into the longer KV span.
-- CUDA graph capture is not validated yet — use `--enforce-eager`.
+- 通过将查询位置偏移到更长的 KV 跨度中，支持 vLLM V1 分块预填充和前缀缓存后缀关注。
+- CUDA 图捕获尚未经过验证——使用 `--enforce-eager`。
 
-## Known Problems
+## 已知问题
 
-1. **MCore reload does not use `MODELOPT_STATE_PATH`**; use `QUANT_FILE_PATH` and make sure `QUANT_CFG` matches the quantization recipe used for the original MCore model (otherwise quantizer keys/config won’t align).
-2. KV cache quantization export and reload is not supported in MCore yet.
-3. **`NVFP4_KV_CFG` and `NVFP4_AFFINE_KV_CFG` require `--enforce-eager`**; these configs use a dynamic-block Triton kernel for KV-cache quantization that is incompatible with CUDA graph capture (the kernel grid is computed from Python-level tensor shapes, which get baked in at capture time). Without `--enforce-eager`, the captured grid will be wrong for different batch sizes, producing incorrect outputs.
+1. **MCore 重载不使用 `MODELOPT_STATE_PATH`**; 使用 `QUANT_FILE_PATH` 并确保 `QUANT_CFG` 与原始 MCore 模型使用的量化配方相匹配（否则量化器键/配置将无法对齐）。
+2. MCore 目前还不支持 KV 缓存量化导出和重新加载。
+3. **`NVFP4_KV_CFG` 和 `NVFP4_AFFINE_KV_CFG` 要求 `--enforce-eager`**；这些配置使用动态块 Triton 内核进行 KV 缓存量化，这与 CUDA 图捕获不兼容（内核网格由 Python 级张量形状计算得出，这些形状在捕获时被嵌入）。 `--enforce-eager`对于不同的批次大小，捕获的网格将不正确，从而产生不正确的输出。

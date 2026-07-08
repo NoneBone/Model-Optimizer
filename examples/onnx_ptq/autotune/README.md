@@ -1,58 +1,60 @@
-# QDQ Placement Optimization Example
+# QDQ 布局优化示例
 
-This example demonstrates automated Q/DQ (Quantize/Dequantize) node placement optimization for ONNX models using TensorRT performance measurements.
+ en [English](./README_en.md) ｜ zh_CN [简体中文](./README.md)
+ 
+本示例演示了使用 TensorRT 性能测量方法对 ONNX 模型进行自动 Q/DQ（量化/反量化）节点放置优化。
 
-## Table of Contents
+## 目录
 
 <div align="center">
 
-| **Section** | **Description** | **Link** | **Docs** |
+| **章节** | **描述** | **链接** | **文档** |
 | :------------: | :------------: | :------------: | :------------: |
-| Prerequisites | Get the model, set fixed batch size, and directory overview | [Link](#prerequisites) | |
-| Quick Start | Basic usage, FP8 quantization, and faster exploration | [Link](#quick-start) | |
-| Output Structure | Output workspace layout and files | [Link](#output-structure) | |
-| Region Inspection | Debug region discovery and partitioning | [Link](#region-inspection) | |
-| Using the Optimized Model | Deploy with TensorRT | [Link](#using-the-optimized-model) | |
-| Pattern Cache | Reuse learned patterns on similar models | [Link](#pattern-cache) | |
-| Optimize from Existing QDQ Model | Start from an existing quantized model | [Link](#optimize-from-existing-qdq-model) | |
-| Remote Autotuning with TensorRT | Offload autotuning to remote hardware | [Link](#remote-autotuning-with-tensorrt) | |
-| Programmatic API Usage | Python API and low-level control | [Link](#programmatic-api-usage) | |
-| Documentation | User guide and API reference | [Link](#documentation) | [docs](https://nvidia.github.io/Model-Optimizer/) |
+| 前提条件 | 获取模型、设置固定批处理大小和目录概览 | [Link](#prerequisites) | |
+| 快速入门 | 基本用法、FP8 量化和快速探索 | [Link](#quick-start) | |
+| 输出结构 | 输出工作区布局和文件 | [Link](#output-structure) | |
+| 区域检查 | 调试区域发现和分区 | [Link](#region-inspection) | |
+| 使用优化模型 | 通过 TensorRT 部署 | [Link](#using-the-optimized-model) | |
+| 模式缓存 | 在类似模型上重用已学习的模式 | [Link](#pattern-cache) | |
+| 基于现有QDQ模型进行优化 | 从现有的量化模型开始 | [Link](#optimize-from-existing-qdq-model) | |
+| 使用 TensorRT 进行远程自动调优 | 将自动调优任务卸载到远程硬件 | [Link](#remote-autotuning-with-tensorrt) | |
+| 程序化 API 使用 | Python API 和底层控制 | [Link](#programmatic-api-usage) | |
+| 文档 | 用户指南和 API 参考 | [Link](#documentation) | [docs](https://nvidia.github.io/Model-Optimizer/) |
 
 </div>
 
-## Prerequisites
+## 先决条件
 
-### Get the Model
+### 获取模型
 
-Download the ResNet50 model from the ONNX Model Zoo:
+从 ONNX 模型库下载 ResNet50 模型：
 
 ```bash
 # Download ResNet50 from ONNX Model Zoo
 curl -L -o resnet50_Opset17.onnx https://github.com/onnx/models/raw/main/Computer_Vision/resnet50_Opset17_torch_hub/resnet50_Opset17.onnx
 ```
 
-### Set Fixed Batch Size
+### 设置固定批量大小
 
-The downloaded model has a dynamic batch size. For best performance with TensorRT benchmarking, set a fixed batch size using Polygraphy:
+下载的模型具有动态批处理大小。为了获得最佳的 TensorRT 基准测试性能，请使用 Polygraphy 设置固定批处理大小：
 
 ```bash
 polygraphy surgeon sanitize --override-input-shapes x:[128,3,1024,1024] -o resnet50_Opset17_bs128.onnx resnet50_Opset17.onnx
 ```
 
-For other batch sizes, change the first dimension in the shape (e.g. `x:[1,3,1024,1024]` for batch size 1).
+对于其他批次大小，请更改形状中的第一个维度（例如） `x:[1,3,1024,1024]` 批次大小为 1）。
 
-### What's in This Directory
+### 本目录包含哪些内容
 
-- `README.md` - This guide
+- `README.md` 本指南
 
-**Note:** ONNX model files are not included in the repository (excluded via `.gitignore`). Download and prepare them using the instructions above.
+**注意：** ONNX 模型文件未包含在存储库中（已通过以下方式排除）： `.gitignore`请按照上述说明下载并准备它们。
 
-## Quick Start
+## 快速入门
 
-### Basic Usage
+### 基本用法
 
-Optimize the ResNet50 model with INT8 quantization:
+使用 INT8 量化优化 ResNet50 模型：
 
 ```bash
 # Using the fixed batch size model
@@ -70,18 +72,18 @@ python3 -m modelopt.onnx.quantization.autotune \
     --schemes_per_region 30
 ```
 
-Short options: `-m` for `--onnx_path`, `-o` for `--output_dir`, `-s` for `--schemes_per_region`. Default output directory is `./autotuner_output` if `--output_dir` is omitted.
+短线选项： `-m` 为了 `--onnx_path`， `-o` 为了 `--output_dir`， `-s` 为了 `--schemes_per_region`默认输出目录是 `./autotuner_output` 如果 `--output_dir` 省略。
 
-This will:
+这将：
 
-1. Automatically discover optimization regions in the model
-2. Test 30 different Q/DQ placement schemes per region pattern
-3. Measure TensorRT performance for each scheme
-4. Export the best optimized model to `./resnet50_results/optimized_final.onnx`
+1. 自动发现模型中的优化区域
+2. 每个区域模式测试 30 种不同的 Q/DQ 放置方案
+3. 测量每种方案的 TensorRT 性能
+4. 将最佳优化模型导出到 `./resnet50_results/optimized_final.onnx`
 
-### FP8 Quantization
+### FP8 量化
 
-For FP8 quantization:
+对于 FP8 量化：
 
 ```bash
 python3 -m modelopt.onnx.quantization.autotune \
@@ -91,9 +93,9 @@ python3 -m modelopt.onnx.quantization.autotune \
     --schemes_per_region 50
 ```
 
-### Faster Exploration
+### 更快的探索
 
-For quick experiments, reduce the number of schemes:
+为了快速进行实验，请减少方案数量：
 
 ```bash
 python3 -m modelopt.onnx.quantization.autotune \
@@ -102,9 +104,9 @@ python3 -m modelopt.onnx.quantization.autotune \
     --schemes_per_region 15
 ```
 
-## Output Structure
+## 输出结构
 
-After running, the output workspace will be:
+运行后，输出工作区将如下所示：
 
 ```log
 resnet50_results/
@@ -120,9 +122,9 @@ resnet50_results/
     └── region_*_level_*.onnx
 ```
 
-## Region Inspection
+## 区域巡查
 
-To debug how the autotuner discovers and partitions regions in your model, use the `region_inspect` tool. It runs the same region search as the autotuner and prints the region hierarchy, node counts, and summary statistics (without running benchmarks).
+要调试自动调优器如何发现和划分模型中的区域，请使用以下方法： `region_inspect` 该工具运行与自动调优器相同的区域搜索，并打印区域层次结构、节点计数和汇总统计信息（不运行基准测试）。
 
 ```bash
 # Basic inspection (regions with quantizable ops only)
@@ -138,11 +140,11 @@ python3 -m modelopt.onnx.quantization.autotune.region_inspect --model resnet50_O
 python3 -m modelopt.onnx.quantization.autotune.region_inspect --model resnet50_Opset17_bs128.onnx --include-all-regions
 ```
 
-Short option: `-m` for `--model`, `-v` for `--verbose`. Use this to verify region boundaries and counts before or during autotuning.
+简称： `-m` 为了 `--model`， `-v` 为了 `--verbose`. 使用此功能可在自动调优之前或期间验证区域边界和计数。
 
-## Using the Optimized Model
+## 使用优化模型
 
-Deploy with TensorRT:
+使用 TensorRT 进行部署：
 
 ```bash
 trtexec --onnx=resnet50_results/optimized_final.onnx \
@@ -150,9 +152,9 @@ trtexec --onnx=resnet50_results/optimized_final.onnx \
         --stronglyTyped
 ```
 
-## Pattern Cache
+## 模式缓存
 
-Reuse learned patterns on similar models (warm-start):
+在类似模型上重用已学习的模式（热启动）：
 
 ```bash
 # First optimization on ResNet50
@@ -171,9 +173,9 @@ python3 -m modelopt.onnx.quantization.autotune \
     --pattern_cache ./resnet50_run/autotuner_state_pattern_cache.yaml
 ```
 
-## Optimize from Existing QDQ Model
+## 基于现有QDQ模型进行优化
 
-If the user already have a quantized model, he can use it as a starting point to potentially find even better Q/DQ placements:
+如果用户已经拥有量化模型，他可以以此为起点，寻找更优的 Q/DQ 位置：
 
 ```bash
 # Use an existing QDQ model as baseline (imports quantization patterns)
@@ -184,20 +186,20 @@ python3 -m modelopt.onnx.quantization.autotune \
     --schemes_per_region 40
 ```
 
-This will:
+这将：
 
-1. Extract Q/DQ insertion points from the baseline model
-2. Import them into the pattern cache as seed schemes
-3. Generate and test variations to find better placements
-4. Compare against the baseline performance
+1. 从基线模型中提取 Q/DQ 插入点
+2. 将它们作为种子方案导入模式缓存
+3. 生成并测试各种方案，以找到更佳的布局。
+4. 与基准性能进行比较
 
-**Use cases:**
+**使用案例：**
 
-- **Improve existing quantization**: Fine-tune manually quantized models
-- **Compare tools**: Test if autotuner can beat other quantization methods
-- **Bootstrap optimization**: Start from expert-tuned schemes
+- **改进现有量化**：微调手动量化模型
+- **工具对比**：测试自动调谐器是否能胜过其他量化方法
+- **引导优化**：从专家调优的方案开始
 
-**Example workflow:**
+**示例工作流程：**
 
 ```bash
 # Step 1: Create initial quantized model with modelopt 
@@ -225,13 +227,13 @@ python3 -m modelopt.onnx.quantization.autotune \
     --schemes_per_region 50
 ```
 
-**Note:** This example uses dummy calibration data. For production use, provide real calibration data representative of the inference workload.
+**注意：**本示例使用虚拟校准数据。在生产环境中使用时，请提供能够代表推理工作负载的真实校准数据。
 
-## Remote Autotuning with TensorRT
+## 使用 TensorRT 进行远程自动调优
 
-TensorRT 10.15+ supports remote autotuning in safety mode (`--safe`), which allows TensorRT's optimization process to be offloaded to a remote hardware. This is useful when optimizing models for different target GPUs without having direct access to them.
+TensorRT 10.15+ 支持安全模式下的远程自动调优（`--safe`这使得 TensorRT 的优化过程可以卸载到远程硬件上。这在针对不同目标 GPU 优化模型而无法直接访问这些 GPU 时非常有用。
 
-To use remote autotuning during Q/DQ placement optimization, run with `trtexec` and pass extra args:
+要在 Q/DQ 位置优化期间使用远程自动调谐，请运行以下命令 `trtexec` 并传递额外参数：
 
 ```bash
 python3 -m modelopt.onnx.quantization.autotune \
@@ -242,52 +244,52 @@ python3 -m modelopt.onnx.quantization.autotune \
     --trtexec_benchmark_args "--remoteAutoTuningConfig=\"<remote autotuning config>\" --safe --skipInference"
 ```
 
-**Requirements:**
+**要求：**
 
-- TensorRT 10.15 or later
-- Valid remote autotuning configuration
-- `--use_trtexec` must be set (benchmarking uses `trtexec` instead of the TensorRT Python API)
-- `--safe --skipInference` must be enabled via `--trtexec_benchmark_args`
+- TensorRT 10.15 或更高版本
+- 有效的远程自动调谐配置
+- `--use_trtexec` 必须设置（基准测试用途） `trtexec` （而不是 TensorRT Python API）
+- `--safe --skipInference` 必须通过以下方式启用 `--trtexec_benchmark_args`
 
-Replace `<remote autotuning config>` with an actual remote autotuning configuration string (see `trtexec --help` for more details).
- Other TensorRT benchmark options (e.g. `--timing_cache`, `--warmup_runs`, `--timing_runs`, `--plugin_libraries`) are also available; run `--help` for details.
+代替 `<remote autotuning config>` 使用实际的远程自动调谐配置字符串（见 `trtexec --help` 更多详情）。
+ 其他 TensorRT 基准测试选项（例如） `--timing_cache`， `--warmup_runs`， `--timing_runs`， `--plugin_libraries`）也可用；运行 `--help` 详情请见下文。
 
-## Programmatic API Usage
+## 程序化 API 使用
 
-All examples above use the command-line interface. For **low-level programmatic control** in Python code, use the Python API directly. This allows user to:
+以上所有示例均使用命令行界面。若要在 Python 代码中进行**底层程序化控制**，请直接使用 Python API。这样用户可以：
 
-- Integrate autotuning into custom pipelines
-- Implement custom evaluation functions
-- Control state management and checkpointing
-- Build custom optimization workflows
+- 将自动调优集成到自定义管道中
+- 实现自定义评估函数
+- 控制状态管理和检查点
+- 构建自定义优化工作流程
 
-**See the API Reference documentation for low-level usage:**
+**有关底层用法，请参阅 API 参考文档：**
 
 - [`docs/source/reference/2_qdq_placement.rst`](../../docs/source/reference/2_qdq_placement.rst)
 
-The API docs include detailed examples of:
+API 文档包含以下方面的详细示例：
 
-- Using the `QDQAutotuner` class and `region_pattern_autotuning_workflow`
-- Customizing region discovery and scheme generation
-- Managing optimization state and pattern cache programmatically
-- Implementing custom performance evaluators (e.g. via `init_benchmark_instance` and `benchmark_onnx_model`)
+- 使用 `QDQAutotuner` 阶级和 `region_pattern_autotuning_workflow`
+- 自定义区域发现和方案生成
+- 以编程方式管理优化状态和模式缓存
+- 实现自定义性能评估器（例如通过 `init_benchmark_instance` 和 `benchmark_onnx_model`）
 
-## Documentation
+## 文档
 
-For comprehensive documentation on QDQ placement optimization, see:
+有关 QDQ 布局优化的完整文档，请参阅：
 
-- **User Guide**: [`docs/source/guides/9_qdq_placement.rst`](../../docs/source/guides/9_qdq_placement.rst)
-  - Detailed explanations of how the autotuner works
-  - Advanced usage patterns and best practices
-  - Configuration options and performance tuning
-  - Troubleshooting common issues
+- **用户指南**： [`docs/source/guides/9_qdq_placement.rst`](../../docs/source/guides/9_qdq_placement.rst)
+  - 自动调谐器工作原理的详细说明
+  - 高级使用模式和最佳实践
+  - 配置选项和性能调优
+  - 常见问题排查
 
-- **API Reference**: [`docs/source/reference/2_qdq_placement.rst`](../../docs/source/reference/2_qdq_placement.rst)
-  - Complete API documentation for all classes and functions
-  - Low-level usage examples
-  - State management and pattern cache details
+- **API 参考**： [`docs/source/reference/2_qdq_placement.rst`](../../docs/source/reference/2_qdq_placement.rst)
+  - 所有类和函数的完整 API 文档
+  - 底层使用示例
+  - 状态管理和模式缓存详情
 
-For command-line help and all options (e.g. `--state_file`, `--node_filter_list`, `--default_dq_dtype`, `--verbose`):
+有关命令行帮助和所有选项（例如 `--state_file`， `--node_filter_list`， `--default_dq_dtype`， `--verbose`）：
 
 ```bash
 python3 -m modelopt.onnx.quantization.autotune --help

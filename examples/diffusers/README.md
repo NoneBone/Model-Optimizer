@@ -1,58 +1,62 @@
-# Diffusers Model Optimizations
+# 扩散器模型优化
 
-Model Optimizer supports techniques like Cache Diffusion and Quantization for Diffusion models.
+ en [English](./README_en.md) ｜ zh_CN [简体中文](./README.md)
+ 
+模型优化器支持缓存扩散和扩散模型量化等技术。
 
-Post-training quantization (PTQ) is an effective model optimization technique that compresses your models to lower precision like INT8, FP8, NVFP4, etc. Quantization with Model Optimizer can compress model size by 2x-4x, speeding up inference while preserving model quality. Quantization-Aware Training (QAT) is a powerful technique for optimizing your models, particularly when PTQ methods fail to meet the requirements for your tasks.
+训练后量化 (PTQ) 是一种有效的模型优化技术，它可以将模型压缩到较低的精度，例如 INT8、FP8、NVFP4 等。使用模型优化器进行量化可以将模型大小压缩 2 到 4 倍，从而在保持模型质量的同时加快推理速度。量化感知训练 (QAT) 是一种强大的模型优化技术，尤其适用于 PTQ 方法无法满足任务需求的情况。
 
-Cache Diffusion is a technique that reuses cached outputs from previous diffusion steps instead of recalculating them. This **training-free** caching approach is compatible with a variety of models, like **DiT** and **UNet**, enabling considerable acceleration without compromising quality.
+缓存扩散是一种技术，它重用先前扩散步骤中缓存的输出，而不是重新计算它们。这种无需训练的缓存方法与多种模型兼容，例如 DiT 和 UNet，能够在不牺牲质量的前提下显著提高速度。
 
 <div align="center">
 
-| **Section** | **Description** | **Link** | **Docs** |
-| :------------: | :------------: | :------------: | :------------: |
-| Pre-Requisites | Required & optional packages to use this technique | \[[Link](#pre-requisites)\] | |
-| Getting Started | Learn how to optimize your models using quantization/cache diffusion to reduce precision and improve inference efficiency | \[[Link](#getting-started)\] | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
-| Support Matrix | View the support matrix to see quantization/cahce diffusion compatibility and feature availability across different models | \[[Link](#support-matrix)\] | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
-| Sparse Attention (Skip-Softmax) | Skip-softmax sparse attention for diffusion models | \[[Link](#sparse-attention-skip-softmax)\] | |
-| Cache Diffusion | Caching technique to accelerate inference without compromising quality | \[[Link](#cache-diffusion)\] | |
-| Post Training Quantization (PTQ) | Example scripts on how to run PTQ on diffusion models | \[[Link](#post-training-quantization-ptq)\] | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
-| Quantization Aware Training (QAT) | Example scripts on how to run QAT on diffusion models | \[[Link](#quantization-aware-training-qat)\] | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
-| Quantization Aware Distillation (QAD) | Example scripts on how to run QAD on diffusion models | \[[Link](#quantization-aware-distillation-qad)\] | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
-| Build and Run with TensorRT | How to build and run your quantized model with TensorRT | \[[Link](#build-and-run-with-tensorrt-compiler-framework)\] | |
-| LoRA | Fuse your LoRA weights prior to quantization | \[[Link](#lora)\] | |
-| Pre-Quantized Checkpoints | Ready to deploy Hugging Face pre-quantized checkpoints | \[[Link](#pre-quantized-checkpoints)\] | |
-| Resources | Extra links to relevant resources | \[[Link](#resources)\] | |
+|          **章节**          |                           **描述**                           |                          **链接**                          |                           **文档**                           |
+| :------------------------: | :----------------------------------------------------------: | :--------------------------------------------------------: | :----------------------------------------------------------: |
+|          先决条件          |               使用此技术所需的必需和可选软件包               |                \[[Link](#pre-requisites)\]                 |                                                              |
+|          入门指南          | 了解如何使用量化/缓存扩散来优化模型，以降低精度并提高推理效率 |                [[Link](#getting-started)\]                 | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
+|          支持矩阵          | 查看支持矩阵，了解不同模型的量化/缓存扩散兼容性和功能可用性  |                \[[Link](#support-matrix)\]                 | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
+| 稀疏注意力（Skip-softmax） |            用于扩散模型的 Skip-softmax 稀疏注意力            |         \[[Link](#sparse-attention-skip-softmax)\]         |                                                              |
+|          缓存扩散          |          一种在不影响质量的前提下加速推理的缓存技术          |                [[Link](#cache-diffusion)\]                 |                                                              |
+|      训练后量化 (PTQ)      |             如何在扩散模型上运行 PTQ 的示例脚本              |        \[[Link](#post-training-quantization-ptq)\]         | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
+|     量化感知训练 (QAT)     |             如何在扩散模型上运行 QAT 的示例脚本              |        \[[Link](#quantization-aware-training-qat)\]        | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
+|     量化感知蒸馏 (QAD)     |             如何在扩散模型上运行 QAD 的示例脚本              |      \[[Link](#quantization-aware-distillation-qad)\]      | \[[docs](https://nvidia.github.io/Model-Optimizer/guides/1_quantization.html)\] |
+|  使用 TensorRT 构建和运行  |             如何使用 TensorRT 构建和运行量化模型             | [[Link](#build-and-run-with-tensorrt-compiler-framework)\] |                                                              |
+|            LoRa            |                 在量化之前融合您的 LoRa 权重                 |                     \[[Link](#lora)\]                      |                                                              |
+|        预量化检查点        |              准备部署 Hugging Face 预量化检查点              |           \[[Link](#pre-quantized-checkpoints)\]           |                                                              |
+|            资源            |                      相关资源的更多链接                      |                   \[[Link](#resources)\]                   |                                                              |
+
+
 
 </div>
 
-## Pre-Requisites
+## 先决条件
 
 ### Docker
 
-Please use the TensorRT docker image (e.g., `nvcr.io/nvidia/tensorrt:26.02-py3`) or visit our [installation docs](https://nvidia.github.io/Model-Optimizer/getting_started/2_installation.html) for more information.
+请使用 TensorRT docker 镜像（例如， `nvcr.io/nvidia/tensorrt:26.02-py3`）或访问我们的网站 [installation docs](https://nvidia.github.io/Model-Optimizer/getting_started/2_installation.html) 了解更多信息。
 
-Also follow the installation steps below to upgrade to the latest version of Model Optimizer and install example-specific dependencies.
+此外，请按照以下安装步骤升级到最新版本的模型优化器并安装示例特定的依赖项。
 
-### Local Installation
+### 本地安装
 
-Install Model Optimizer with `onnx` and `hf` dependencies using `pip` from [PyPI](https://pypi.org/project/nvidia-modelopt/):
+安装模型优化器 `onnx` 和 `hf` 使用依赖项 `pip` 从 [PyPI](https://pypi.org/project/nvidia-modelopt/)：
 
 ```bash
 pip install nvidia-modelopt[onnx,hf]
 pip install -r requirements.txt
 ```
 
-Each subsection (fastgen, distillation, etc.) may have their own `requirements.txt` file that needs to be installed separately.
+每个子部分（快速生成、蒸馏等）可能都有自己的 `requirements.txt` 需要单独安装的文件。
 
-You can find the latest TensorRT [here](https://developer.nvidia.com/tensorrt/download).
+您可以找到最新的 TensorRT [here](https://developer.nvidia.com/tensorrt/download)。
 
-Visit our [installation docs](https://nvidia.github.io/Model-Optimizer/getting_started/2_installation.html) for more information.
+访问我们的网站 [installation docs](https://nvidia.github.io/Model-Optimizer/getting_started/2_installation.html) 了解更多信息。
 
-## Getting Started
+## 入门
 
-### Quantization
+### 量化
 
-With the simple API below, you can very easily use Model Optimizer to quantize your model. Model Optimizer achieves this by converting the precision of your model to the desired precision, and then using a small dataset (typically 128-512 samples) to [calibrate](https://nvidia.github.io/Model-Optimizer/guides/_basic_quantization.html) the quantization scaling factors.
+借助下方简洁的 API，您可以轻松使用模型优化器对模型进行量化。模型优化器通过将模型的精度转换为所需的精度，然后使用小型数据集（通常为 128-512 个样本）来实现这一点。 [calibrate](https://nvidia.github.io/Model-Optimizer/guides/_basic_quantization.html) 量化缩放因子。
 
 ```python
 import modelopt.torch.quantization as mtq
@@ -64,9 +68,9 @@ def forward_pass(model):
 mtq.quantize(model=transformer, config=quant_config, forward_func=forward_pass)
 ```
 
-## Support Matrix
+## 支持矩阵
 
-### TensorRT Compiler Framework
+### TensorRT 编译器框架
 
 | Model | fp8 | int8_sq | int4_awq | w4a8_awq<sup>1</sup> | nvfp4<sup>2</sup> | nvfp4_svdquant<sup>3</sup> | Cache Diffusion |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -76,22 +80,22 @@ mtq.quantize(model=transformer, config=quant_config, forward_func=forward_pass)
 | [SDXL-Turbo](https://huggingface.co/stabilityai/sdxl-turbo) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | - |
 | [Stable Diffusion 2.1](https://huggingface.co/stabilityai/stable-diffusion-2-1) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | - |
 
-> *<sup>1.</sup>The w4a8_awq is an experimental quantization scheme that may result in a higher accuracy penalty.*
+> *<sup>1.</sup>w4a8_awq 是一种实验性的量化方案，可能会导致更高的精度损失。*
 
-> *<sup>2.</sup>A selective set of the popular models are internally tested. The actual model support list may be longer. NVFP4 inference requires Blackwell GPUs and TensorRT-LLM v0.17 or later*
+> *<sup>2.</sup>内部测试仅包含部分常用模型。实际支持的模型列表可能更长。NVFP4 推理需要 Blackwell GPU 和 TensorRT-LLM v0.17 或更高版本*
 
-> *<sup>3.</sup>The SVDQuant Perf in TRT might not good as the [Nunchaku: MIT-Nvidia](https://github.com/nunchaku-tech/nunchaku) at this moment.*
+> *<sup>3.</sup>TRT 中的 SVDQuant 性能可能不如…… [Nunchaku: MIT-Nvidia](https://github.com/nunchaku-tech/nunchaku) 此时此刻。*
 
-## Post Training Quantization (PTQ)
+## 训练后量化（PTQ）
 
-We support calibration for INT8, FP8 and FP4 precision and for both weights and activations. The examples below shows how to use Model Optimizer to calibrate and quantize the backbone section of diffusion models. The backbone section typically consumes >95% of the E2E diffusion latency.
+我们支持 INT8、FP8 和 FP4 精度的校准，并支持权重和激活值的校准。以下示例展示了如何使用模型优化器来校准和量化扩散模型的主干部分。主干部分通常会消耗超过 95% 的端到端扩散延迟。
 
-We also provide instructions on deploying and running E2E diffusion pipelines with Model Optimizer quantized INT8 and FP8 Backbone to generate images and measure latency on target GPUs. Note, Jetson devices are not supported at this time due to the incompatibility of the software.
+我们还提供关于如何部署和运行基于模型优化器量化 INT8 和 FP8 主干的端到端扩散流水线的说明，以便在目标 GPU 上生成图像并测量延迟。请注意，由于软件不兼容，目前不支持 Jetson 设备。
 
-> [!NOTE]
-> Model calibration requires relatively more GPU computing power then deployment. It does not need to be on the same GPUs as the deployment target GPUs. ONNX export and TensorRT engine instructions live in [`quantization/ONNX-TRT-Deployment.md`](./quantization/ONNX-TRT-Deployment.md).
+> [！笔记]
+> 模型校准所需的GPU计算能力相对高于部署所需的GPU计算能力。它不需要与部署目标GPU使用相同的GPU。ONNX导出和TensorRT引擎指令位于[此处]。 [`quantization/ONNX-TRT-Deployment.md`](./quantization/ONNX-TRT-Deployment.md)。
 
-### Quantize scripts
+### 量化脚本
 
 #### FLUX|SD3|SDXL INT8 [Script](./quantization/quantize.py)
 
@@ -116,9 +120,9 @@ python quantize.py \
     --hf-ckpt-dir ./hf_ckpt
 ```
 
-#### Wan 2.2 VAE NVFP4 (Conv3D Implicit GEMM)
+#### Wan 2.2 VAE NVFP4（Conv3D隐式GEMM）
 
-The Wan 2.2 VAE (`AutoencoderKLWan`, shared between the 5B and 14B pipelines) is built from 3D convolutions. When quantizing the VAE with NVFP4, the `Conv3d` layers are automatically dispatched through a custom BF16 WMMA implicit-GEMM kernel with fused FP4 activation quantization. Requires SM80+ (Ampere or newer). See [`modelopt/torch/kernels/quantization/conv/README.md`](../../modelopt/torch/kernels/quantization/conv/README.md) for kernel details.
+Wan 2.2 VAE（`AutoencoderKLWan`（在 5B 和 14B 流水线之间共享）由 3D 卷积构成。当使用 NVFP4 对 VAE 进行量化时， `Conv3d` 各层通过自定义的 BF16 WMMA 隐式 GEMM 内核自动分发，该内核采用融合的 FP4 激活量化。需要 SM80+（Ampere 或更新版本）。参见 [`modelopt/torch/kernels/quantization/conv/README.md`](../../modelopt/torch/kernels/quantization/conv/README.md) 有关内核详细信息。
 
 ```sh
 python quantize.py \
@@ -132,21 +136,21 @@ python quantize.py \
 
 #### [LTX-2](https://github.com/Lightricks/LTX-2) FP4
 
-> [!WARNING]
-> **Third-Party License Notice — LTX-2**
+> [！警告]
+> **第三方许可声明 — LTX-2**
 >
-> LTX-2 is a third-party model and set of packages developed and provided by Lightricks. LTX-2
-> is **not** covered by the Apache 2.0 license that governs NVIDIA Model Optimizer.
+> LTX-2 是由 Lightricks 开发和提供的第三方模型及软件包。
+> **不**受 NVIDIA Model Optimizer 所适用的 Apache 2.0 许可证的约束。
 >
-> By installing and using LTX-2 packages (`ltx-core`, `ltx-pipelines`, `ltx-trainer`) with
-> NVIDIA Model Optimizer, you **must** comply with the
-> [LTX Community License Agreement](https://github.com/Lightricks/LTX-2/blob/main/LICENSE).
+> 通过安装和使用 LTX-2 软件包（`ltx-core`， `ltx-pipelines`， `ltx-trainer`） 和
+> 使用 NVIDIA 模型优化器时，您**必须**遵守以下规定：
+> [LTX Community License Agreement](https://github.com/Lightricks/LTX-2/blob/main/LICENSE)。
 >
-> Any derivative models or fine-tuned weights produced from LTX-2 using NVIDIA Model Optimizer
-> (including quantized or distilled checkpoints) remain subject to the LTX Community License
-> Agreement and are **not** covered by Apache 2.0.
+> 使用 NVIDIA 模型优化器从 LTX-2 生成任何衍生模型或微调权重
+> （包括量化或提炼的检查点）仍受 LTX 社区许可的约束。
+> 协议不包含在 Apache 2.0 中。
 
-This example produces three outputs: a PyTorch checkpoint (`--quantized-torch-ckpt-save-path`), a Hugging Face checkpoint (`--hf-ckpt-dir`), and a ComfyUI-compatible merged safetensor (`--extra-param merged_base_safetensor_path`).
+此示例产生三个输出：一个 PyTorch 检查点（`--quantized-torch-ckpt-save-path`），一个拥抱脸检查点（`--hf-ckpt-dir`），以及与 ComfyUI 兼容的合并安全张量（`--extra-param merged_base_safetensor_path`）。
 
 ```sh
 python quantize.py \
@@ -161,31 +165,31 @@ python quantize.py \
     --extra-param merged_base_safetensor_path=./ltx-2-19b-dev-fp8.safetensors
 ```
 
-To additionally apply NVFP4 scale swizzle and padding , add:
+要进一步应用 NVFP4 标度调整和填充，请添加：
 
 ```sh
     --extra-param enable_swizzle_layout=true \
     --extra-param padding_strategy=row_col
 ```
 
-#### Important Parameters
+#### 重要参数
 
-- `percentile`: Control quantization scaling factors (amax) collecting range, meaning that we will collect the chosen amax in the range of `(n_steps * percentile)` steps. Recommendation: 1.0
-- `alpha`: A parameter in SmoothQuant, used for linear layers only. Recommendation: 0.8 for SDXL
-- `calib-size`: For SDXL INT8, we recommend 32 or 64, for SDXL FP8, 128 is recommended.
-- `n_steps`: Recommendation: SD/SDXL 20 or 30, SDXL-Turbo 4.
+- `percentile`：控制量化缩放因子（amax）的采集范围，这意味着我们将采集所选amax值范围内的数据。 `(n_steps * percentile)` 步骤。建议：1.0
+- `alpha`SmoothQuant 中的一个参数，仅用于线性层。建议值：SDXL 为 0.8
+- `calib-size`对于 SDXL INT8，我们建议使用 32 或 64 位色深；对于 SDXL FP8，我们建议使用 128 位色深。
+- `n_steps`推荐型号：SD/SDXL 20 或 30，SDXL-Turbo 4。
 
-**You can use the generated checkpoint directly in PyTorch, export a Hugging Face checkpoint (`--hf-ckpt-dir`) to deploy the model on SGLang/vLLM/TRTLLM, or follow the ONNX/TensorRT workflow in [`quantization/ONNX-TRT-Deployment.md`](./quantization/ONNX-TRT-Deployment.md).**
+**您可以直接在 PyTorch 中使用生成的检查点，导出 Hugging Face 检查点（`--hf-ckpt-dir`) 将模型部署在 SGLang/vLLM/TRTLLM 上，或者遵循 ONNX/TensorRT 工作流程 [`quantization/ONNX-TRT-Deployment.md`](./quantization/ONNX-TRT-Deployment.md).**
 
-## Quantization Aware Training (QAT)
+## 量化感知训练（QAT）
 
-Quantization-Aware Training (QAT) is a powerful technique for optimizing your models, particularly when post-training quantization (PTQ) methods fail to meet the requirements for your tasks. By simulating the effects of quantization during training, QAT allows the model to learn to minimize the quantization error, ultimately delivering better accuracy.
+量化感知训练 (QAT) 是一种强大的模型优化技术，尤其适用于训练后量化 (PTQ) 方法无法满足任务需求的情况。通过在训练过程中模拟量化的影响，QAT 使模型能够学习如何最小化量化误差，最终提高模型的准确率。
 
-While the example below uses Hugging Face Accelerate for simplicity. You can integrate QAT into your workflow using your preferred training setup.
+以下示例为简化起见使用了 Hugging Face Accelerate。您可以使用自己偏好的训练设置将 QAT 集成到工作流程中。
 
-### How QAT Works in ModelOPT
+### ModelOPT 中的 QAT 工作原理
 
-With ModelOPT, the forward pass simulates quantization, allowing the model to adjust its weights to minimize training loss and reduce quantization errors. This enables the model to better handle the constraints of quantized hardware without significant loss of performance.
+ModelOPT通过前向传播模拟量化过程，使模型能够调整权重，从而最大限度地减少训练损失并降低量化误差。这使得模型能够更好地应对量化硬件的限制，而不会造成显著的性能损失。
 
 ```python
 import modelopt.torch.opt as mto
@@ -203,13 +207,13 @@ transformer_model, optimizer, train_dataloader, lr_scheduler = accelerator.prepa
 
 ```
 
-Once the model is loaded in its quantized state through ModelOPT, you can proceed with regular training. The QAT process will automatically take place during the forward passes.
+模型通过 ModelOPT 加载到量化状态后，即可进行常规训练。QAT 过程将在前向传播过程中自动执行。
 
-## Quantization Aware Distillation (QAD)
+## 量化感知蒸馏（QAD）
 
-Distillation is a powerful approach where a high-precision model (the teacher) guides the training of a quantized model (the student). ModelOPT simplifies the process of combining distillation with QAT by handling most of the complexity for you.
+蒸馏法是一种强大的方法，它利用高精度模型（教师）指导量化模型（学生）的训练。ModelOPT 通过处理大部分复杂性，简化了将蒸馏法与 QAT 相结合的过程。
 
-For more details about distillation, please refer to this [link](https://nvidia.github.io/Model-Optimizer/guides/4_distillation.html).
+有关蒸馏的更多详细信息，请参阅此链接。 [link](https://nvidia.github.io/Model-Optimizer/guides/4_distillation.html)。
 
 ```diff
 import modelopt.torch.opt as mto
@@ -260,17 +264,17 @@ transformer, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
 
 ```
 
-## Build and Run with TensorRT Compiler Framework
+## 使用 TensorRT 编译器框架构建和运行
 
-ONNX export and TensorRT engine instructions are documented in [`quantization/ONNX-TRT-Deployment.md`](./quantization/ONNX-TRT-Deployment.md).
+ONNX导出和TensorRT引擎指令的文档位于[此处应填写文档内容]。 [`quantization/ONNX-TRT-Deployment.md`](./quantization/ONNX-TRT-Deployment.md)。
 
-### LoRA
+### 罗拉
 
-For optimal performance of INT8/FP8 quantized models, we highly recommend fusing the LoRA weights prior to quantization. Failing to do so can disrupt TensorRT kernel fusion when integrating the LoRA layer with INT8/FP8 Quantize-Dequantize (QDQ) nodes, potentially leading to performance losses.
+为了获得最佳的 INT8/FP8 量化模型性能，我们强烈建议在量化之前融合 LoRA 权重。否则，在将 LoRA 层与 INT8/FP8 量化-反量化 (QDQ) 节点集成时，可能会干扰 TensorRT 内核的融合，从而导致性能损失。
 
-Detailed guidance on how to fuse LoRA weights can be found in the Hugging Face [PEFT documentation](https://github.com/huggingface/peft):
+有关如何融合 LoRa 权重的详细指南，请参阅 Hugging Face。 [PEFT documentation](https://github.com/huggingface/peft)：
 
-After fusing the weights, proceed with the calibration and you can follow our code to do the quantization.
+融合权重后，继续进行校准，您可以按照我们的代码进行量化。
 
 ```python
 pipe = DiffusionPipeline.from_pretrained(
@@ -291,7 +295,7 @@ mtq.quantize(pipe.unet, quant_config, forward_loop)
 mto.save(pipe.unet, ...)
 ```
 
-When it's time to export the model to ONNX format, ensure that you load the PEFT-modified LoRA model first.
+当需要将模型导出为 ONNX 格式时，请确保先加载 PEFT 修改后的 LoRA 模型。
 
 ```python
 pipe = DiffusionPipeline.from_pretrained(
@@ -309,13 +313,13 @@ mto.restore(pipe.unet, your_quantized_ckpt)
 # Export the onnx model
 ```
 
-By following these steps, your PEFT LoRA model should be efficiently quantized using ModelOpt, ready for deployment while maximizing performance.
+按照这些步骤，您的 PEFT LoRA 模型应该能够使用 ModelOpt 进行高效量化，从而可以部署并最大限度地提高性能。
 
-## Sparse Attention (Skip-Softmax)
+## 稀疏注意力（Skip-Softmax）
 
-Skip-softmax sparse attention skips KV tiles whose attention scores are negligible during the softmax computation, reducing FLOPs without retraining. An exponential model (`scale_factor = a * exp(b * target_sparsity)`) is calibrated once, then the target sparsity can be adjusted at runtime without recalibration. Calibrated coefficients can be exported as a Hugging Face checkpoint (embedded in each component's `config.json` under `sparse_attention_config`) consumed directly by TRT-LLM's `SkipSoftmaxAttentionConfig.resolve_for_target_sparsity` — no extra conversion needed downstream.
+Skip-softmax稀疏注意力机制在softmax计算过程中跳过注意力得分可忽略不计的KV图块，从而在不重新训练的情况下减少FLOPs。指数模型（`scale_factor = a * exp(b * target_sparsity)`只需校准一次，即可在运行时调整目标稀疏度而无需重新校准。校准后的系数可以导出为 Hugging Face 检查点（嵌入在每个组件中）。 `config.json` 在下面 `sparse_attention_config`）直接被TRT-LLM消耗 `SkipSoftmaxAttentionConfig.resolve_for_target_sparsity` — 下游无需额外转换。
 
-### Getting Started
+### 入门
 
 ```python
 import modelopt.torch.sparsity.attention_sparsity as mtsa
@@ -349,11 +353,11 @@ mtsa.sparsify(transformer, config, forward_loop=forward_loop)
 output = pipeline(prompt="a dog on the beach", ...)
 ```
 
-### Example Scripts
+### 示例脚本
 
-#### Wan 2.2 [Script](./sparsity/wan22_skip_softmax.py)
+#### 他们 2.2 [Script](./sparsity/wan22_skip_softmax.py)
 
-The 14B model automatically sparsifies both `transformer` and `transformer_2`.
+14B 模型会自动稀疏化两者 `transformer` 和 `transformer_2`。
 
 ```bash
 
@@ -365,19 +369,19 @@ python sparsity/wan22_skip_softmax.py \
     --prompt "A sunset over mountains" --output out.mp4
 ```
 
-## Cache Diffusion
+## 缓存扩散
 
-Cache Diffusion methods, such as [DeepCache](https://arxiv.org/abs/2312.00858), [Block Caching](https://arxiv.org/abs/2312.03209) and [T-Gate](https://arxiv.org/abs/2404.02747), optimize performance by reusing cached outputs from previous steps instead of recalculating them. This **training-free** caching approach is compatible with a variety of models, like **DiT** and **UNet**, enabling considerable acceleration without compromising quality.
+缓存扩散方法，例如 [DeepCache](https://arxiv.org/abs/2312.00858)， [Block Caching](https://arxiv.org/abs/2312.03209) 和 [T-Gate](https://arxiv.org/abs/2404.02747)通过重用先前步骤的缓存输出而非重新计算，可以优化性能。这种**无需训练**的缓存方法兼容多种模型，例如**DiT**和**UNet**，能够在不牺牲质量的前提下显著提升性能。
 
 <div align="center">
   <img src="./cache_diffusion/assets/sdxl_cache.png" width="900" alt="SDXL Cache"/>
-  This diagram shows the default SDXL Cache compute graph in this example.
-  Significant speedup is achieve through skipping certain blocks at the specific steps.
+  此图显示了本示例中的默认 SDXL 缓存计算图。
+  通过跳过特定步骤中的某些代码块，可以显著提高速度。
 </div>
 
-### Getting Started
+### 入门
 
-With the simple API below, you can very easily use Model Optimizer to apply cache diffusion to your model. Model Optimizer achieves this by breaking down different blocks into a single TensorRT engine, and at inference time, we combine multiple TensorRT engines in the same way a PyTorch module would..
+借助下方简洁的 API，您可以轻松地使用模型优化器将缓存扩散应用于您的模型。模型优化器通过将不同的模块分解成单个 TensorRT 引擎来实现这一点，并在推理时，以类似于 PyTorch 模块的方式组合多个 TensorRT 引擎。
 
 ```python
 import torch
@@ -409,13 +413,13 @@ with cachify.infer(pipe) as cached_pipe:
 img
 ```
 
-### PyTorch Framework
+### PyTorch框架
 
-Please refer to [example.ipynb](./cache_diffusion/example.ipynb) for more details on how to apply cache diffusion.
+请参考 [example.ipynb](./cache_diffusion/example.ipynb) 有关如何应用缓存扩散的更多详细信息。
 
-### TensorRT Compiler Framework
+### TensorRT 编译器框架
 
-To execute cache diffusion in TensorRT, follow these steps:
+要在TensorRT中执行缓存扩散，请按照以下步骤操作：
 
 ```python
 # Load the model
@@ -430,13 +434,13 @@ compile(
 cachify.prepare(pipe, num_inference_steps, SDXL_DEFAULT_CONFIG)
 ```
 
-Afterward, use it as a standard cache diffusion pipeline to generate the image.
+之后，将其用作标准缓存扩散管道来生成图像。
 
-Please note that only the UNET component is running in TensorRT, while the other parts remain in PyTorch.
+请注意，只有 UNET 组件在 TensorRT 中运行，而其他部分仍然在 PyTorch 中运行。
 
-### Customize
+### 定制
 
-Model Optimizer also provides an API to create various compute graphs by simply adjusting the parameters. For instance, the default parameter for SDXL is:
+模型优化器还提供了一个 API，只需调整参数即可创建各种计算图。例如，SDXL 的默认参数为：
 
 ```python
 SDXL_DEFAULT_CONFIG = [
@@ -449,35 +453,35 @@ SDXL_DEFAULT_CONFIG = [
 cachify.prepare(pipe, num_inference_steps, SDXL_DEFAULT_CONFIG)
 ```
 
-Two parameters are essential: `wildcard_or_filter_func` and `select_cache_step_func`.
+两个参数至关重要： `wildcard_or_filter_func` 和 `select_cache_step_func`。
 
-`wildcard_or_filter_func`: This can be a **str** or a **function**. If the module matches the given str or filter_func, then it will perform the cache operation. For example, if your input is a string `*up_blocks*`, it will match all names containing `up_blocks` and will perform the cache operation in the future, as you use `fnmatch` to match the string. If you use a function instead, the module name will be passed into the function you provided, and if the function returns True, then it will perform the cache operation.
+`wildcard_or_filter_func`这可以是字符串或函数。如果模块与给定的字符串或 filter_func 匹配，则会执行缓存操作。例如，如果您的输入是字符串 `*up_blocks*`它将匹配所有包含的名称 `up_blocks` 将来，当您使用时，它将执行缓存操作。 `fnmatch` 要匹配字符串。如果改用函数，模块名称将传递给您提供的函数，如果该函数返回 True，则会执行缓存操作。
 
-`select_cache_step_func`: During inference, code will check at each step to see if you want to perform the cache operation based on the `select_cache_step_func` you provided. If `select_cache_step_func(current_step)` returns True, the module will cached; otherwise, it won't.
+`select_cache_step_func`在推理过程中，代码会在每个步骤检查是否要根据以下情况执行缓存操作： `select_cache_step_func` 您已提供。如果 `select_cache_step_func(current_step)` 如果返回 True，则模块将被缓存；否则，不会缓存。
 
-Multiple configurations can be set up, but ensure that the `wildcard_or_filter_func` works correctly. If you input more than one pair of parameters with the same `wildcard_or_filter_func`, the later one in the list will overwrite the previous ones.
+可以设置多种配置，但请确保 `wildcard_or_filter_func` 运行正常。如果您输入多对参数且参数值相同，则无法正常工作。 `wildcard_or_filter_func`列表中后一项会覆盖前一项。
 
-### Demo
+### 演示
 
-The following demo images are generated using `torch==2.3.0` with a single RTX 6000 Ada GPU.
+以下演示图像是使用以下方法生成的 `torch==2.3.0` 采用单块 RTX 6000 Ada GPU。
 
-Comparing with naively reducing the generation steps, cache diffusion can achieve the same speedup and also much better image quality, even close to the reference image. If the image quality does not meet your needs or product requirements, you can replace our default configuration with your customized settings.
+与简单地减少生成步骤相比，缓存扩散不仅可以实现相同的加速，还能显著提升图像质量，甚至接近参考图像。如果图像质量无法满足您的需求或产品要求，您可以将我们的默认配置替换为自定义设置。
 
-#### Stable Diffusion - XL
+#### 稳定扩散 - XL
 
-![SDXL Cache Diffusion](./cache_diffusion/assets/SDXL_Cache_Diffusion_Img.png)
+![SDXL 缓存扩散](./cache_diffusion/assets/SDXL_Cache_Diffusion_Img.png)
 
-### Notes About Randomness
+### 关于随机性的笔记
 
-Stable Diffusion pipelines rely heavily on random sampling operations, which include creating Gaussian noise tensors to denoise and adding noise in the scheduling step. In the quantization recipe, we don't fix the random seed. As a result, every time you run the calibration pipeline, you could get different quantizer amax values. This may lead to the generated images being different from the ones generated with the original model. We suggest to run a few more times and choose the best one.
+稳定扩散流程严重依赖于随机采样操作，包括创建高斯噪声张量进行去噪以及在调度步骤中添加噪声。在量化过程中，我们没有固定随机种子。因此，每次运行校准流程时，您都可能得到不同的量化器 amax 值。这可能会导致生成的图像与使用原始模型生成的图像有所不同。我们建议您多运行几次，并选择最佳结果。
 
-## Pre-Quantized Checkpoints
+## 预先量化的检查点
 
-- Ready-to-deploy checkpoints \[[🤗 Hugging Face - Black Forest Labs](https://huggingface.co/black-forest-labs)\]
-- Deployable on [TensorRT](https://developer.nvidia.com/tensorrt) and [PyTorch](https://github.com/pytorch/pytorch)
-- More models coming soon!
+- 准备部署的检查点[[🤗 Hugging Face - Black Forest Labs](https://huggingface.co/black-forest-labs)\]
+- 可部署于 [TensorRT](https://developer.nvidia.com/tensorrt) 和 [PyTorch](https://github.com/pytorch/pytorch)
+- 更多车型即将推出！
 
-## Resources
+## 资源
 
 - 📅 [Roadmap](https://github.com/NVIDIA/Model-Optimizer/issues/1699)
 - 📖 [Documentation](https://nvidia.github.io/Model-Optimizer)

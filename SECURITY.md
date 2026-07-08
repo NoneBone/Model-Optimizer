@@ -1,171 +1,191 @@
-# Security
+# 安全
 
-NVIDIA is dedicated to the security and trust of our software products and services, including all source code repositories managed through our organization.
+NVIDIA 致力于保护我们软件产品和服务的安全与信任，包括通过我们的组织管理的所有源代码仓库。
 
-If you need to report a security issue, please use the appropriate contact points outlined below. **Please do not report security vulnerabilities through GitHub.**
+如果您需要报告安全问题，请使用下面列出的适当联系方式。**请不要通过 GitHub 报告安全漏洞。**
 
-## Reporting Potential Security Vulnerability in an NVIDIA Product
+## 报告 NVIDIA 产品中的潜在安全漏洞
 
-To report a potential security vulnerability in any NVIDIA product:
+要报告任何 NVIDIA 产品中的潜在安全漏洞：
 
-- Web: [Security Vulnerability Submission Form](https://www.nvidia.com/object/submit-security-vulnerability.html)
-- E-Mail: [psirt@nvidia.com](mailto:psirt@nvidia.com)
-  - We encourage you to use the following PGP key for secure email communication: [NVIDIA public PGP Key for communication](https://www.nvidia.com/en-us/security/pgp-key)
-  - Please include the following information:
-    - Product/Driver name and version/branch that contains the vulnerability
-    - Type of vulnerability (code execution, denial of service, buffer overflow, etc.)
-    - Instructions to reproduce the vulnerability
-    - Proof-of-concept or exploit code
-    - Potential impact of the vulnerability, including how an attacker could exploit the vulnerability
+- 网页：[安全漏洞提交表单](https://www.nvidia.com/object/submit-security-vulnerability.html)
 
-While NVIDIA currently does not have a bug bounty program, we do offer acknowledgement when an externally reported security issue is addressed under our coordinated vulnerability disclosure policy. Please visit our [Product Security Incident Response Team (PSIRT)](https://www.nvidia.com/en-us/security/psirt-policies/) policies page for more information.
+- 电子邮件：[psirt@nvidia.com](mailto:psirt@nvidia.com)
 
-## NVIDIA Product Security
+  -   我们鼓励您使用以下 PGP 密钥进行安全的电子邮件通信：[NVIDIA 公共 PGP 通信密钥](https://www.nvidia.com/en-us/security/pgp-key)
 
-For all security-related concerns, please visit NVIDIA's [Product Security portal](https://www.nvidia.com/en-us/security).
+  -   请包含以下信息：
 
----
+    -  存在漏洞的产品/驱动程序名称及版本/分支
 
-## Security Considerations
+    -  漏洞类型（代码执行、拒绝服务、缓冲区溢出等）
 
-### Overview
+    -  复现漏洞的步骤说明
 
-NVIDIA Model Optimizer (ModelOpt) is a library used to optimize ML models and may load and process user-provided artifacts (models, weights, configs, calibration data) and their dependencies. Secure deployment depends on how you source artifacts, validate inputs, and harden the environment where ModelOpt runs.
+    -  概念验证或利用代码
 
-### What to Be Aware Of
+    -  漏洞的潜在影响，包括攻击者如何利用该漏洞
 
-#### Untrusted model and data inputs
+虽然 NVIDIA 目前没有漏洞赏金计划，但我们在协调披露政策下处理外部报告的安全问题时，会予以致谢。请访问我们的[产品安全事件响应团队 (PSIRT)](https://www.nvidia.com/en-us/security/psirt-policies/)政策页面了解更多信息。
 
-- Models, weights, configs and data may be malicious or corrupted.
+## NVIDIA 产品安全
 
-#### Deserialization and code-execution risks
+有关所有安全相关问题，请访问 NVIDIA 的[产品安全门户](https://www.nvidia.com/en-us/security)。
 
-- Unsafe deserialization can lead to arbitrary code execution if fed untrusted inputs.
-- Avoid using serialization formats/settings that can deserialize arbitrary objects.
+------
 
-#### Input validation and resource exhaustion
+## 安全考量
 
-- Large or malformed inputs can trigger crashes or excessive CPU/GPU/memory use.
-- Missing size/type checks can increase DoS risk.
+### 概述
 
-#### Data in transit and at rest
+NVIDIA Model Optimizer (ModelOpt) 是一个用于优化机器学习模型的库，可能会加载和处理用户提供的工件（模型、权重、配置、校准数据）及其依赖项。安全部署取决于您如何获取工件、验证输入以及加固运行 ModelOpt 的环境。
 
-- If fetching models or dependencies over the network, insecure transport can enable tampering.
-- Stored artifacts, logs, and caches may contain sensitive data.
+### 需要注意的事项
 
-#### Logging and observability
+#### 不受信任的模型和数据输入
 
-- Logs may inadvertently contain sensitive inputs, paths, tokens, or proprietary model details.
-- Overly verbose logs can leak operational and security-relevant information.
+- 模型、权重、配置和数据可能是恶意的或被篡改的。
 
-#### Supply chain and third-party components
+#### 反序列化和代码执行风险
 
-- Dependencies may include known vulnerabilities or be compromised.
-- Third-party plugins/components loaded at runtime may not have the same security assurances.
+- 不安全的反序列化可能导致在提供不受信任输入时执行任意代码。
 
-### Example Security Approaches
+- 避免使用可以反序列化任意对象的序列化格式/设置。
 
-#### Artifact integrity
+#### 输入验证和资源耗尽
 
-- Only load artifacts from trusted sources.
-- Prefer signed artifacts; verify signatures before loading.
+- 大型或格式错误的输入可能触发崩溃或过度使用 CPU/GPU/内存。
 
-#### Safe parsing and deserialization
+- 缺少大小/类型检查会增加拒绝服务风险。
 
-- Prefer safer storage formats (avoid object deserialization for untrusted inputs).
-- Avoid `pickle`, `torch.load()` with untrusted weights, or YAML `unsafe_load`.
-- Treat any unverified artifact as untrusted and block/guard its loading.
+#### 传输中和静态数据
 
-#### Hardening and least privilege
+- 如果通过网络获取模型或依赖项，不安全的传输可能导致篡改。
 
-- Run with least privilege and isolate workloads.
+- 存储的工件、日志和缓存可能包含敏感数据。
 
-#### Data protection
+#### 日志记录和可观测性
 
-- Encrypt sensitive data at rest; use TLS 1.3 for data in transit.
-- Never hardcode or log credentials.
+- 日志可能无意中包含敏感输入、路径、令牌或专有模型细节。
 
-#### Resilience
+- 过于详细的日志可能泄露操作和安全相关信息。
 
-- Validate inputs and enforce limits (file size, timeouts, quotas, etc.).
-- Keep OS, containers, and dependencies patched; scan for known vulnerabilities.
+#### 供应链和第三方组件
 
----
+- 依赖项可能包含已知漏洞或被攻破。
 
-## Security Coding Practices for Contributors
+- 运行时加载的第三方插件/组件可能不具有相同的安全保障。
 
-ModelOpt processes model checkpoints and weights from various sources. Contributors must avoid patterns that can introduce security vulnerabilities. These rules apply to all code except tests. These rules cover a few key security considerations as follows:
+### 示例安全方法
 
-### Deserializing untrusted data
+#### 工件完整性
 
-**Do not use `torch.load(..., weights_only=False)`** unless a documented exception is provided. It uses pickle under the hood and can execute arbitrary code from a malicious checkpoint.
+- 仅从可信来源加载工件。
 
-```python
-# Bad — allows arbitrary code execution from the checkpoint file
+- 优先使用签名工件；加载前验证签名。
+
+#### 安全解析和反序列化
+
+- 优先使用更安全的存储格式（避免对不受信任输入进行对象反序列化）。
+
+- 避免使用 `pickle`、对不受信任权重使用 `torch.load()`或 YAML `unsafe_load`。
+
+- 将任何未经验证的工件视为不受信任，并阻止/防护其加载。
+
+#### 加固和最小权限
+
+- 以最小权限运行并隔离工作负载。
+
+#### 数据保护
+
+- 加密静态敏感数据；传输中使用 TLS 1.3。
+
+- 切勿硬编码或记录凭据。
+
+#### 弹性
+
+- 验证输入并强制执行限制（文件大小、超时、配额等）。
+
+- 保持操作系统、容器和依赖项的补丁更新；扫描已知漏洞。
+
+------
+
+## 贡献者的安全编码实践
+
+ModelOpt 处理来自各种来源的模型检查点和权重。贡献者必须避免可能引入安全漏洞的模式。这些规则适用于除测试外的所有代码。这些规则涵盖以下几个关键安全考量：
+
+### 反序列化不受信任的数据
+
+**除非提供记录的例外情况，否则不要使用 `torch.load(..., weights_only=False)`。** 它在底层使用 pickle，可以从恶意检查点执行任意代码。
+
+```
+# 不好——允许从检查点文件执行任意代码
 state = torch.load(path, weights_only=False)
 
-# Good
+# 好
 state = torch.load(path, weights_only=True, map_location="cpu")
 
-# Acceptable only with an inline comment explaining why weights_only=False
-# is required and confirming the file is internally-generated / trusted.
+# 仅在有内联注释解释为什么需要 weights_only=False
+# 并确认文件是内部生成/可信的情况下才可接受
 state = torch.load(
     path,
-    weights_only=False,  # loaded file is generated internally by ModelOpt and not supplied by the user
+    weights_only=False,  # 加载的文件由 ModelOpt 内部生成，非用户提供
     map_location="cpu",
 )
 ```
 
-**Do not use `numpy.load(..., allow_pickle=True)`** unless a documented exception is provided. It uses pickle under the hood and can execute arbitrary code from a malicious checkpoint.
+**除非提供记录的例外情况，否则不要使用 `numpy.load(..., allow_pickle=True)`。** 它在底层使用 pickle，可以从恶意检查点执行任意代码。
 
-```python
-# Bad — allows arbitrary code execution from the checkpoint file
+```
+# 不好——允许从检查点文件执行任意代码
 state = numpy.load(path, allow_pickle=True)
 
-# Good - let the caller decide; default to False
+# 好 - 让调用者决定；默认为 False
 def load_data(path: str, trust_data: bool = False):
     return numpy.load(path, allow_pickle=trust_data)
 ```
 
-**Do not use `yaml.load()`** — always use `yaml.safe_load()`. The default loader can execute arbitrary Python objects embedded in YAML.
+**不要使用 `yaml.load()`** — 始终使用 `yaml.safe_load()`。默认加载器可以执行嵌入在 YAML 中的任意 Python 对象。
 
-### Loading transformers models with `trust_remote_code`
+### 使用 `trust_remote_code`加载 transformers 模型
 
-**Do not hardcode `trust_remote_code=True`.** This flag tells Transformers to execute arbitrary Python shipped with a checkpoint, which is an RCE vector if the model source is untrusted.
+**不要硬编码 `trust_remote_code=True`。** 此标志告诉 Transformers 执行随检查点附带的任意 Python，如果模型来源不受信任，这是一个远程代码执行向量。
 
-```python
-# Bad — silently opts every user into remote code execution
+```
+# 不好——静默地让每个用户都执行远程代码
 model = AutoModel.from_pretrained(name, trust_remote_code=True)
 
-# Good — let the caller decide; default to False
+# 好——让调用者决定；默认为 False
 def load_model(name: str, trust_remote_code: bool = False):
     return AutoModel.from_pretrained(name, trust_remote_code=trust_remote_code)
 ```
 
-### Subprocess and shell commands
+### 子进程和 shell 命令
 
-**Never use `shell=True` with string interpolation or user-supplied input.** This is a command-injection vector.
+**永远不要在使用字符串插值或用户提供输入时使用 `shell=True`。** 这是一个命令注入向量。
 
-```python
-# Bad — command injection if model_name contains shell metacharacters
+```
+# 不好——如果 model_name 包含 shell 元字符，则存在命令注入
 subprocess.run(f"python convert.py --model {model_name}", shell=True)
 
-# Good — pass arguments as a list
+# 好——将参数作为列表传递
 subprocess.run(["python", "convert.py", "--model", model_name])
 ```
 
-### Other patterns to avoid
+### 其他应避免的模式
 
-- **`eval()` / `exec()`** on strings derived from external input. If you must generate and execute code dynamically, validate the input against an allowlist of safe patterns.
-- **Hardcoded secrets or credentials** — never commit tokens, passwords, or API keys. Use environment variables or config files listed in `.gitignore`.
+- **对外部输入派生的字符串使用 `eval()`/ `exec()`**。如果您必须动态生成和执行代码，请对照安全模式的白名单验证输入。
 
-### Bandit security checks
+- **硬编码的秘密或凭据** — 切勿提交令牌、密码或 API 密钥。使用环境变量或列在 `.gitignore`中的配置文件。
 
-Bandit is used as a pre-commit hook to check for security-sensitive patterns in the code. **`# nosec` comments are not allowed** as a bypass for security checks.
+### Bandit 安全检查
 
-### Creating a security exception
+Bandit 用作预提交钩子，用于检查代码中的安全敏感模式。**不允许使用 `# nosec`注释**来绕过安全检查。
 
-If a security-sensitive pattern (e.g. `pickle`, `subprocess`) is genuinely required, the contributor must:
+### 创建安全例外
 
-1. **Add an inline comment** explaining *why* the pattern is necessary and *why* it is safe in this specific context (e.g. "loaded file is generated internally by ModelOpt").
-1. **Request review from [@NVIDIA/modelopt-setup-codeowners](https://github.com/orgs/NVIDIA/teams/modelopt-setup-codeowners)** and include a clear justification in the PR description.
+如果确实需要安全敏感模式（例如 `pickle`、`subprocess`），贡献者必须：
+
+1. **添加内联注释**解释*为什么*需要该模式以及*为什么*在此特定上下文中是安全的（例如"加载的文件由 ModelOpt 内部生成"）。
+
+2. **请求 [@NVIDIA/modelopt-setup-codeowners](https://github.com/orgs/NVIDIA/teams/modelopt-setup-codeowners)的审核**并在拉取请求描述中包含明确的理由。
