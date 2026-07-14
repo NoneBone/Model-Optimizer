@@ -120,15 +120,25 @@ def get_output_shapes(
     Returns:
         List of shapes of outputs which are list of integers.
     """
+    if hasattr(engine, "num_io_tensors"):
+        unresolved_tensor_names = context.infer_shapes()
+        assert not unresolved_tensor_names, (
+            f"Shapes of all tensors cannot be inferred: {unresolved_tensor_names}"
+        )
+        return [
+            list(context.get_tensor_shape(tensor_name))
+            for index in range(engine.num_io_tensors)
+            if engine.get_tensor_mode(tensor_name := engine.get_tensor_name(index))
+            == trt.TensorIOMode.OUTPUT
+        ]
+
     assert context.all_binding_shapes_specified
     assert context.all_shape_inputs_specified
-
-    output_shapes = []
-    for binding_index in range(engine.num_bindings):
-        if not engine.binding_is_input(binding_index):
-            shape = context.get_binding_shape(binding_index)
-            output_shapes.append(shape)
-    return output_shapes
+    return [
+        context.get_binding_shape(binding_index)
+        for binding_index in range(engine.num_bindings)
+        if not engine.binding_is_input(binding_index)
+    ]
 
 
 def calib_data_generator(onnx_bytes: bytes, input_tensors: list[np.ndarray]):
