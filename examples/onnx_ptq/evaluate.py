@@ -52,10 +52,12 @@ def main():
         help="Path to the TensorRT timing cache",
     )
     parser.add_argument(
+        "--dataset_path",
         "--imagenet_path",
+        dest="imagenet_path",
         type=str,
         default="ILSVRC/imagenet-1k",
-        help="HF dataset card or local path to the ImageNet dataset",
+        help="HF dataset card or local dataset path",
     )
     parser.add_argument("--batch_size", type=int, default=1, help="Batch size for evaluation")
     parser.add_argument(

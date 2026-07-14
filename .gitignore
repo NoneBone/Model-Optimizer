@@ -71,3 +71,6 @@ AGENTS.override.md
 
 # Claude Code runtime lock (ephemeral process state — never commit)
 .claude/scheduled_tasks.lock
+vit_base_patch16_224/
+*.npy
+tiny-imagenet/

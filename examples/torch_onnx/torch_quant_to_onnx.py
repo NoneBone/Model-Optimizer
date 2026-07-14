@@ -442,12 +442,13 @@ def main():
     parser.add_argument(
         "--quantize_mode",
         choices=["fp8", "mxfp8", "int8", "nvfp4", "int4_awq", "auto"],
-        default="mxfp8",
+        default="int4_awq",
         help="Type of quantization to apply. Default is MXFP8.",
     )
     parser.add_argument(
         "--onnx_save_path",
-        required=True,
+        # required=True,
+        default="./onnx/",
         help="The save path to save the ONNX model.",
         type=str,
     )

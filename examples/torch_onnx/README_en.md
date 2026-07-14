@@ -83,16 +83,27 @@ TensorRT only supports FP8 and INT8 for convolution operations. When quantizing 
 
 ### Evaluation
 
-If the input model is of type image classification, use the following script to evaluate it. The script automatically downloads and uses the [ILSVRC/imagenet-1k](https://huggingface.co/datasets/ILSVRC/imagenet-1k) dataset from Hugging Face. This gated repository requires authentication via Hugging Face access token. See <https://huggingface.co/docs/hub/en/security-tokens> for details.
+If the input model is of type image classification, use the following script to evaluate it. By default, it uses the [ILSVRC/imagenet-1k](https://huggingface.co/datasets/ILSVRC/imagenet-1k) dataset from Hugging Face. This gated repository requires authentication via Hugging Face access token. See <https://huggingface.co/docs/hub/en/security-tokens> for details. For a quick local evaluation, use Tiny ImageNet in its standard directory layout; the script maps its WordNet classes to ImageNet-1K labels.
 
 > *Note: TensorRT 10.11 or later is required to evaluate the MXFP8 or NVFP4 ONNX models.*
 
 ```bash
 python ../onnx_ptq/evaluate.py \
     --onnx_path=<path to the exported ONNX model> \
-    --imagenet_path=<HF dataset card or local path to the ImageNet dataset> \
+    --dataset_path=<HF dataset card or local path to the ImageNet dataset> \
     --engine_precision=stronglyTyped \
     --model_name=<timm model name>
+```
+
+For Tiny ImageNet, pass the extracted `tiny-imagenet-200` directory:
+
+```bash
+python ../onnx_ptq/evaluate.py \
+    --onnx_path=./onnx/VisionTransformer.onnx \
+    --dataset_path=<path to tiny-imagenet-200> \
+    --dataset_type=tiny-imagenet \
+    --engine_precision=stronglyTyped \
+    --model_name=./vit_base_patch16_224
 ```
 
 ## LLM Quantization and Export with TensorRT-Edge-LLM

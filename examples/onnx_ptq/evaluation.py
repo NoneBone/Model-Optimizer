@@ -16,29 +16,62 @@
 """Module to evaluate a device model for the specified task."""
 
 import random
+from pathlib import Path
 from typing import Final
 
 import torch
 from datasets import load_dataset
+from timm.data import ImageNetInfo
 from tqdm import tqdm
 
 from modelopt.torch._deploy.device_model import DeviceModel
 
 ACCURACY: Final[str] = "accuracy"
+TINY_IMAGENET_SYNSET_REMAP: Final[dict[str, str]] = {
+    "n02666347": "n02666196",
+    "n03373237": "n02190166",
+    "n04465666": "n04465501",
+    "n04598010": "n04597913",
+    "n07056680": "n04067472",
+    "n07646821": "n01855672",
+    "n07647870": "n03250847",
+    "n07657664": "n07579787",
+    "n07975909": "n02206856",
+    "n08496334": "n02730930",
+    "n08620881": "n03976657",
+    "n08742578": "n02085620",
+    "n12520864": "n02906734",
+    "n13001041": "n07734744",
+    "n13652335": "n03804744",
+    "n13652994": "n02999410",
+    "n13719102": "n01945685",
+    "n14991210": "n07747607",
+}
 
 
 class ImageNetWrapper(torch.utils.data.Dataset):
     """Wrapper for the ILSVRC/imagenet-1k Hugging Face dataset."""
 
-    def __init__(self, hf_dataset, transform=None):
+    def __init__(self, hf_dataset, transform=None, label_names=None):
         """Initialize the wrapper.
 
         Args:
             hf_dataset: The Hugging Face dataset object.
             transform: Optional transform to apply to images.
+            label_names: Optional WordNet label names to map to ImageNet-1K indices.
         """
         self.dataset = hf_dataset
         self.transform = transform
+        self.label_indices = None
+        if label_names:
+            imagenet_label_indices = {
+                label_name: index
+                for index, label_name in enumerate(ImageNetInfo().label_names())
+            }
+            self.label_indices = [
+                imagenet_label_indices[TINY_IMAGENET_SYNSET_REMAP.get(label_name, label_name)]
+                for label_name in label_names
+            ]
 
     def __len__(self):
         return len(self.dataset)
@@ -55,6 +88,8 @@ class ImageNetWrapper(torch.utils.data.Dataset):
             image = self.transform(image)
 
         label = item["label"]
+        if self.label_indices:
+            label = self.label_indices[label]
         return image, label
 
 
@@ -81,16 +116,21 @@ def evaluate(
         The evaluation result.
     """
 
-    # Load imagenet-1k from Hugging Face
-    dataset = load_dataset(
-        dataset_path,
-        split="validation",
-        data_files={
-            "validation": "data/validation*",
-        },
-        verification_mode="no_checks",
-    )
-    val_dataset = ImageNetWrapper(dataset, transform=transform)
+    if Path(dataset_path).is_dir():
+        dataset = load_dataset(dataset_path, split="valid")
+        label_names = dataset.features["label"].names
+        val_dataset = ImageNetWrapper(dataset, transform=transform, label_names=label_names)
+    else:
+        # Load imagenet-1k from Hugging Face
+        dataset = load_dataset(
+            dataset_path,
+            split="validation",
+            data_files={
+                "validation": "data/validation*",
+            },
+            verification_mode="no_checks",
+        )
+        val_dataset = ImageNetWrapper(dataset, transform=transform)
     val_loader = torch.utils.data.DataLoader(
         val_dataset, batch_size=batch_size, shuffle=True, num_workers=4
     )

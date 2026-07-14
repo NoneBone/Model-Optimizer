@@ -18,25 +18,25 @@
 
 ______________________________________________________________________
 
-**NVIDIA Model Optimizer**（简称 **Model Optimizer** 或 **ModelOpt**）是一个包含最先进模型优化技术的库，涵盖量化、剪枝、神经架构搜索 (NAS)、蒸馏、推测解码和稀疏化等技术，用于加速模型推理。
+NVIDIA 模型优化器（简称模型优化器或 ModelOpt）是一个包含最先进模型优化功能的库。 [techniques](#techniques) 包括量化、剪枝、神经架构搜索（NAS）、蒸馏、推测性解码和稀疏性，以加速模型。
 
-**[输入]** Model Optimizer 目前支持输入 Hugging Face、PyTorch 或 ONNX 模型。
+**[Input]** Model Optimizer 目前支持输入 [Hugging Face](https://huggingface.co/)， [PyTorch](https://github.com/pytorch/pytorch) 或者 [ONNX](https://github.com/onnx/onnx) 模型。
 
-**[优化]** Model Optimizer 提供 Python API，方便用户组合上述模型优化技术并导出优化后的量化检查点。Model Optimizer 还与 NVIDIA Megatron-Bridge、Megatron-LM 和 Hugging Face Accelerate 集成，支持需要训练的推理优化技术。
+**[优化]** Model Optimizer 提供 Python API，方便用户组合上述模型优化技术并导出优化后的量化检查点。Model Optimizer 还与 [NVIDIA Megatron-Bridge](https://github.com/NVIDIA-NeMo/Megatron-Bridge)， [Megatron-LM](https://github.com/NVIDIA/Megatron-LM) 和 [Hugging Face Accelerate](https://github.com/huggingface/accelerate) 集成，支持需要训练的推理优化技术。
 
-**[导出部署]** 与 NVIDIA AI 软件生态系统无缝集成，Model Optimizer 生成的量化检查点可直接部署到下游推理框架中，如 SGLang、TensorRT-LLM、TensorRT 或 vLLM。统一的 Hugging Face 导出 API 现已同时支持 transformers 和 diffusers 模型。
+**[Export for deployment]** 与 NVIDIA AI 软件生态系统无缝集成，Model Optimizer 生成的量化检查点可直接部署到下游推理框架中，如 [SGLang](https://github.com/sgl-project/sglang)， [TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM/tree/main/examples/quantization)， [TensorRT](https://github.com/NVIDIA/TensorRT)， 或者 [vLLM](https://github.com/vllm-project/vllm)统一的 Hugging Face 导出 API 现在同时支持变换器和扩散器模型。
 
 ## 最新动态
 
-- [2026/05/27] [**Nemotron-3-Nano-30B-A3B 端到端优化教程**](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/megatron_bridge/tutorials/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16)：剪枝 + 两阶段蒸馏 + FP8 量化，实现 2.6× vLLM 吞吐量和 2.6× 内存缩减。
+- [2026/05/27] [**Nemotron-3-Nano-30B-A3B 端到端优化教程**](./examples/megatron_bridge/tutorials/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16)：剪枝 + 两阶段蒸馏 + FP8 量化，实现 2.6× vLLM 吞吐量和 2.6× 内存缩减。
 
-- [2026/05/13] [**Puzzletron**](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/puzzletron)：一种用于 LLM 和 VLM 模型异构剪枝及神经架构搜索（NAS）的新算法。
+- [2026/05/13] [**Puzzletron**](./examples/puzzletron)：一种用于 LLM 和 VLM 模型异构剪枝及神经架构搜索（NAS）的新算法。
 
 - [2026/04/15] 客户案例：[Domyn 使用 ModelOpt 的 Minitron 剪枝 + 蒸馏将 Colosseum-355B 压缩至 260B](https://www.domyn.com/blog/domyn-large-the-journey-of-a-european-sovereign-ai-model-for-regulated-industries)
 
 - [2026/03/17] 客户案例：[Bielik.AI 使用 ModelOpt 的 Minitron 剪枝 + 蒸馏构建 Bielik Minitron 7B（体积缩小 33%、速度提升 50%、保留 90% 质量）](https://bielik.ai/en/nvidia-gtc-bielik-minitron-premiere/)
 
-- [2026/03/11] Model Optimizer 量化的 Nemotron-3-Super 检查点已在 Hugging Face 发布可供下载：[FP8](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8)、[NVFP4](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4)。了解更多请查看 [Nemotron 3 Super 发布博客](https://blogs.nvidia.com/blog/nemotron-3-super-agentic-ai/)。点击[此处](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/hf_ptq/README.md)了解如何量化 Nemotron 3 模型以加速部署
+- [2026/03/11] Model Optimizer 量化的 Nemotron-3-Super 检查点已在 Hugging Face 发布可供下载：[FP8](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8)、[NVFP4](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4)。了解更多请查看 [Nemotron 3 Super 发布博客](https://blogs.nvidia.com/blog/nemotron-3-super-agentic-ai/)。点击[此处]()了解如何量化 Nemotron 3 模型以加速部署
 
 - [2026/03/11] [NeMo Megatron Bridge](https://github.com/NVIDIA-NeMo/Megatron-Bridge)现已支持 Nemotron-3-Super 量化（PTQ 和 QAT）及导出工作流，使用 Model Optimizer 库。参见 [量化（PTQ 和 QAT）指南](https://github.com/NVIDIA-NeMo/Megatron-Bridge/blob/super-v3/docs/models/llm/nemotron3-super.md#quantization-ptq-and-qat)获取 FP8/NVFP4 量化及 HF 导出说明。
 
@@ -60,13 +60,13 @@ ______________________________________________________________________
 
 - [2025/04/21] [Adobe 使用 Model Optimizer + TensorRT 优化部署，扩散模型延迟降低 60%、总拥有成本（TCO）降低 40%](https://developer.nvidia.com/blog/optimizing-transformer-based-diffusion-models-for-video-generation-with-nvidia-tensorrt/)
 
-- [2025/04/05] [NVIDIA 加速 Meta Llama 4 Scout 和 Maverick 推理](https://developer.nvidia.com/blog/nvidia-accelerates-inference-on-meta-llama-4-scout-and-maverick/)。了解如何量化 Llama4 以加速部署[在此](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/hf_ptq/README.md#support-matrix)
+- [2025/04/05] [NVIDIA 加速 Meta Llama 4 Scout 和 Maverick 推理](https://developer.nvidia.com/blog/nvidia-accelerates-inference-on-meta-llama-4-scout-and-maverick/)。了解如何量化 Llama4 以加速部署[在此](#support-matrix)
 
 - [2025/03/18] [基于 Blackwell FP4 实现全球最快 DeepSeek-R1 推理 & 提升 Blackwell 上图像生成效率](https://developer.nvidia.com/blog/nvidia-blackwell-delivers-world-record-deepseek-r1-inference-performance/)
 
 - [2025/02/25] Model Optimizer 量化的 NVFP4 模型已在 Hugging Face 发布可供下载：[DeepSeek-R1-FP4](https://huggingface.co/nvidia/DeepSeek-R1-FP4)、[Llama-3.3-70B-Instruct-FP4](https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-FP4)、[Llama-3.1-405B-Instruct-FP4](https://huggingface.co/nvidia/Llama-3.1-405B-Instruct-FP4)
 
-- [2025/01/28] Model Optimizer 新增 NVFP4 支持。查看 NVFP4 PTQ 示例[此处](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/hf_ptq/README.md#getting-started)。
+- [2025/01/28] Model Optimizer 新增 NVFP4 支持。查看 NVFP4 PTQ 示例[此处](./examples/hf_ptq/README.md#getting-started)。
 
 - [2025/01/28] Model Optimizer 现已开源！
 
@@ -83,7 +83,7 @@ ______________________________________________________________________
 
 - [2024/08/15] 近期版本新功能：缓存扩散（Cache Diffusion）、[配合 NVIDIA NeMo 的 QLoRA 工作流](https://docs.nvidia.com/nemo-framework/user-guide/24.09/sft_peft/qlora.html)等。详见[我们的博客](https://developer.nvidia.com/blog/nvidia-tensorrt-model-optimizer-v0-15-boosts-inference-performance-and-expands-model-support/)。
 
-- [2024/06/03] Model Optimizer 现提供实验性特性可部署至 vLLM，作为支持主流部署框架的一部分。查看工作流[此处](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/hf_ptq/README.md#vllm)
+- [2024/06/03] Model Optimizer 现提供实验性特性可部署至 vLLM，作为支持主流部署框架的一部分。查看工作流[此处](#vllm)
 
 - [2024/05/08] [官宣：Model Optimizer 正式发布，进一步加速生成式 AI 推理性能](https://developer.nvidia.com/blog/accelerate-generative-ai-inference-performance-with-nvidia-tensorrt-model-optimizer-now-publicly-available/)
 
@@ -127,13 +127,13 @@ pip install -e .[dev]
 
 拉取和使用容器镜像前请查阅各自的许可证条款。确保按上述说明将 Model Optimizer 升级至最新版本。更多关于依赖精细控制、替代 Docker 镜像及环境变量设置，请参阅[安装指南](https://nvidia.github.io/Model-Optimizer/getting_started/2_installation.html)。
 
-## 优化技术
+## Techniques
 
 <div align="center">
 
 |             **技术**             |                       **描述**                        |                           **示例**                           |                           **文档**                           |
 | :------------------------------: | :---------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-|        后训练量化（PTQ）         | 将模型尺寸压缩 2-4 倍，在保持模型质量的同时加速推理！ | [HFLLMs/VLMs](./examples/hfptq/)[Megatron−BridgeLLMs/VLMs](./examples/megatronbridge/)[Diffusers](./examples/diffusers/)[ONNX](./examples/onnxptq/)[Windows](./examples/windows/) | [文档](https://nvidia.github.io/Model−Optimizer/guides/1quantization.html) |
+|        后训练量化（PTQ）         | 将模型尺寸压缩 2-4 倍，在保持模型质量的同时加速推理！ | [HFLLMs/VLMs](./examples/hf_ptq/README.md);[Megatron−BridgeLLMs/VLMs](./examples/megatron_bridge/README.md); [Diffusers](./examples/diffusers/README.md); [ONNX](./examples/onnx_ptq/README.md); [Windows](./examples/windows/README.md) | [文档](https://nvidia.github.io/Model−Optimizer/guides/1quantization.html) |
 |  量化感知训练 / 蒸馏（QAT/QAD）  |      通过少量训练步骤进一步修正量化模型的精度！       | [HuggingFace](./examples/llmqat/)[Megatron−Bridge](./examples/megatronbridge) | [文档](https://nvidia.github.io/Model−Optimizer/guides/1quantization.html) |
 |         剪枝（Pruning）          |  通过移除不必要权重减小参数量或内存占用，加速推理！   | [通用](./examples/pruning/)[Megatron−Bridge](./examples/megatronbridge/) |                                                              |
 |     知识蒸馏（Distillation）     |      让小模型模仿大模型行为，缩减部署模型尺寸！       | [HuggingFace](./examples/llmdistill/)[Megatron−Bridge](./examples/megatronbridge/)[Megatron-LM](./examples/llm_distill/README.md#knowledge-distillation-kd-in-nvidia-megatron-lm-framework) | [文档](https://nvidia.github.io/Model−Optimizer/guides/4distillation.html) |
@@ -156,7 +156,7 @@ pip install -e .[dev]
 
 - 📖 [文档](https://nvidia.github.io/Model-Optimizer)
 
-- 🎯 [基准测试](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/benchmark.md)
+- 🎯 [基准测试](./examples/benchmark.md)
 
 - 💡 [发行说明](https://nvidia.github.io/Model-Optimizer/reference/0_changelog.html)
 
@@ -168,14 +168,14 @@ pip install -e .[dev]
 
 | 模型类型                         | 支持矩阵                                                     |
 | -------------------------------- | ------------------------------------------------------------ |
-| LLM / VLM 量化                   | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/hf_ptq/README.md#support-matrix) |
-| Diffusers 量化                   | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/diffusers/README.md#support-matrix) |
-| ONNX 量化                        | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/torch_onnx/README.md#onnx-export-supported-llm-models) |
-| Windows 量化                     | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/windows/README.md#support-matrix) |
-| 量化感知训练（QAT/QAD）          | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/llm_qat/README.md#support-matrix) |
-| 剪枝（Pruning）                  | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/pruning/README.md#support-matrix) |
-| 知识蒸馏（Distillation）         | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/llm_distill/README.md#support-matrix) |
-| 推测解码（Speculative Decoding） | [查看支持矩阵](https://yuanbao.tencent.com/chat/naQivTmsDa/examples/speculative_decoding/README.md#support-matrix) |
+| LLM / VLM 量化                   | [查看支持矩阵](#support-matrix) |
+| Diffusers 量化                   | [查看支持矩阵](./examples/diffusers/README.md#support-matrix) |
+| ONNX 量化                        | [查看支持矩阵](./examples/torch_onnx/README.md#onnx-export-supported-llm-models) |
+| Windows 量化                     | [查看支持矩阵](./examples/windows/README.md#support-matrix) |
+| 量化感知训练（QAT/QAD）          | [查看支持矩阵](./examples/llm_qat/README.md#support-matrix) |
+| 剪枝（Pruning）                  | [查看支持矩阵](./examples/pruning/README.md#support-matrix) |
+| 知识蒸馏（Distillation）         | [查看支持矩阵](./examples/llm_distill/README.md#support-matrix) |
+| 推测解码（Speculative Decoding） | [查看支持矩阵](./examples/speculative_decoding/README.md#support-matrix) |
 
 ## 弃用策略
 
@@ -205,11 +205,11 @@ Model Optimizer 对弃用功能采用结构化管理办法：
 
 ## 贡献
 
-Model Optimizer 现已开源！欢迎反馈、功能请求及 PR。请先阅读[贡献指南](https://yuanbao.tencent.com/chat/naQivTmsDa/CONTRIBUTING.md)了解参与方式。
+Model Optimizer 现已开源！欢迎反馈、功能请求及 PR。请先阅读[贡献指南](./CONTRIBUTING.md)了解参与方式。
 
 ## AI Agents
 
-关于 AI 辅助开发环境配置，参见 [Agent 工具说明](https://yuanbao.tencent.com/chat/naQivTmsDa/.agents/TOOLING.md)。
+关于 AI 辅助开发环境配置，参见 [Agent 工具说明](./.agents/TOOLING.md)。
 
 ### 主要贡献者
 
